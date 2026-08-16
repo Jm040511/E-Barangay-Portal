@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
 const path = require("path");
-
 const announcementsRouter = require("./routes/announcements");
 const complaintsRouter = require("./routes/complaints");
 const forumRouter = require("./routes/forum");
@@ -12,10 +11,14 @@ const adminRouter = require("./routes/admin");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set("trust proxy", 1);
+
 app.use(cors({ origin: true, credentials: true }));
+
 // Raised from Express's 100kb default so a compressed complaint photo
 // (base64, downsized client-side before upload) fits comfortably.
 app.use(express.json({ limit: "6mb" }));
+
 // auth.js already refuses to boot in production without SESSION_SECRET
 // set — this fallback only ever applies to local development.
 app.use(session({
@@ -29,6 +32,7 @@ app.use(session({
     sameSite: "lax"
   }
 }));
+
 require("./auth"); // runs the production credential check at startup
 
 // API routes
