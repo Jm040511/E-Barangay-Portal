@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Community Forum — Barangay Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-hero{padding:70px 32px 20px; text-align:left;}
+  .page-hero .wrap{max-width:1140px;}
+  .breadcrumb{font-family:'JetBrains Mono', monospace; font-size:0.74rem; color:var(--ink-soft); margin-bottom:18px;}
+  .breadcrumb a{color:var(--indigo); text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .page-hero h1{font-size:clamp(2rem,4.4vw,3rem); color:var(--indigo-deep); max-width:640px;}
+  .page-hero p.lede{color:var(--ink-soft); font-size:1.02rem; max-width:560px; margin-top:16px; line-height:1.6;}
+
+  .forum-shell{
+    display:grid; grid-template-columns:220px 1fr 280px; gap:26px;
+    padding:36px 32px 100px; max-width:1180px; margin:0 auto;
+  }
+  @media (max-width:980px){ .forum-shell{grid-template-columns:1fr;} }
+
+  /* filter rail */
+  .filter-rail{position:sticky; top:90px; align-self:start;}
+  .filter-group{margin-bottom:26px;}
+  .filter-group b{display:block; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft); font-family:'JetBrains Mono', monospace; margin-bottom:12px;}
+  .filter-item{
+    display:flex; align-items:center; justify-content:space-between; padding:9px 10px; border-radius:8px;
+    font-size:0.86rem; cursor:pointer; color:var(--ink-soft); transition:background 0.2s, color 0.2s;
+  }
+  .filter-item:hover{background:var(--paper-deep);}
+  .filter-item.active{background:var(--indigo); color:#fff; font-weight:600;}
+  .filter-item .count{font-family:'JetBrains Mono', monospace; font-size:0.72rem; opacity:0.7;}
+  @media (max-width:980px){ .filter-rail{position:static; display:flex; gap:20px; overflow-x:auto; margin-bottom:10px;} }
+
+  /* thread list */
+  .compose-bar{
+    display:flex; align-items:center; gap:14px; background:#fff; border:1px solid var(--line);
+    border-radius:16px; padding:16px 20px; margin-bottom:24px; cursor:pointer; transition:border-color 0.2s;
+  }
+  .compose-bar:hover{border-color:var(--indigo);}
+  .compose-bar .avatar{
+    width:38px; height:38px; border-radius:50%; background:var(--indigo-soft); color:var(--indigo);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-family:'Fraunces', serif; flex-shrink:0;
+  }
+  .compose-bar span{color:var(--ink-soft); font-size:0.9rem;}
+
+  .thread-tabs{display:flex; gap:8px; margin-bottom:20px;}
+  .thread-tab{
+    padding:9px 16px; border-radius:999px; font-size:0.82rem; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--ink-soft); transition:all 0.2s;
+  }
+  .thread-tab.active{background:var(--gold); border-color:var(--gold); color:var(--indigo-deep);}
+
+  .thread-card{
+    background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px 24px; margin-bottom:14px;
+    transition:transform 0.2s, box-shadow 0.2s;
+  }
+  .thread-card:hover{transform:translateY(-2px); box-shadow:var(--shadow-soft);}
+  .thread-top{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:8px; flex-wrap:wrap;}
+  .thread-tag{
+    font-family:'JetBrains Mono', monospace; font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em;
+    padding:4px 9px; border-radius:999px; flex-shrink:0;
+  }
+  .tag-feedback{background:rgba(95,127,91,0.14); color:var(--sage);}
+  .tag-suggestion{background:rgba(226,165,60,0.16); color:var(--gold-deep);}
+  .tag-survey{background:var(--indigo-soft); color:var(--indigo);}
+  .thread-card h3{font-size:1.05rem; margin-top:2px; color:var(--ink); font-weight:600; font-family:'Fraunces', serif;}
+  .thread-meta{font-size:0.76rem; color:var(--ink-soft); margin-top:6px;}
+  .thread-excerpt{font-size:0.87rem; color:var(--ink-soft); line-height:1.55; margin-top:10px;}
+  .thread-foot{display:flex; align-items:center; gap:18px; margin-top:16px;}
+  .vote-btn{
+    display:flex; align-items:center; gap:7px; border:1px solid var(--line); background:var(--paper);
+    border-radius:999px; padding:7px 14px; cursor:pointer; font-size:0.82rem; font-weight:600; color:var(--ink-soft);
+    transition:all 0.2s; user-select:none;
+  }
+  .vote-btn:hover{border-color:var(--gold-deep);}
+  .vote-btn.voted{background:var(--gold); border-color:var(--gold); color:var(--indigo-deep);}
+  .vote-btn svg{width:14px; height:14px; transition:transform 0.2s;}
+  .vote-btn.voted svg{transform:translateY(-1px);}
+  .reply-count{font-size:0.8rem; color:var(--ink-soft); display:flex; align-items:center; gap:6px; cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif; padding:0;}
+  .reply-count:hover{color:var(--indigo);}
+
+  /* implementing badge */
+  .implement-badge{
+    display:inline-flex; align-items:center; gap:6px; background:rgba(95,127,91,0.14); color:var(--sage);
+    font-size:0.74rem; font-weight:700; padding:6px 12px; border-radius:999px; margin-top:12px;
+  }
+  .implement-badge .note{font-weight:400; color:var(--ink-soft); margin-left:4px;}
+
+  /* comments */
+  .comments-wrap{display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--line);}
+  .comments-wrap.open{display:block;}
+  .comment-item{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .comment-item:last-child{border-bottom:none;}
+  .comment-avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--indigo-soft); color:var(--indigo);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-family:'Fraunces',serif;
+    font-size:0.8rem; flex-shrink:0;
+  }
+  .comment-body{flex:1;}
+  .comment-meta{font-size:0.76rem; color:var(--ink-soft); margin-bottom:2px;}
+  .comment-meta b{color:var(--ink); font-weight:600;}
+  .comment-text{font-size:0.85rem; color:var(--ink); line-height:1.5;}
+  .no-comments{font-size:0.82rem; color:var(--ink-soft); padding:8px 0;}
+
+  .comment-form{margin-top:14px; display:flex; flex-direction:column; gap:8px;}
+  .comment-form textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:0.84rem;
+    background:var(--paper); resize:vertical; min-height:60px; font-family:'Inter',sans-serif;
+  }
+  .comment-form-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .comment-name-input{
+    flex:1; min-width:140px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:0.82rem;
+    background:#fff; font-family:'Inter',sans-serif;
+  }
+  .comment-anon-toggle{
+    width:32px; height:18px; background:var(--line); border-radius:999px; position:relative; cursor:pointer; flex-shrink:0;
+    transition:background 0.2s;
+  }
+  .comment-anon-toggle i{position:absolute; top:2px; left:2px; width:14px; height:14px; background:#fff; border-radius:50%; transition:transform 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.2);}
+  .comment-anon-toggle.on{background:var(--sage);}
+  .comment-anon-toggle.on i{transform:translateX(14px);}
+  .comment-anon-label{font-size:0.76rem; color:var(--ink-soft);}
+  .comment-submit-row{display:flex; justify-content:flex-end;}
+  .comment-submit{
+    background:var(--indigo); color:#fff; border:none; padding:8px 16px; border-radius:8px;
+    font-size:0.8rem; font-weight:600; cursor:pointer;
+  }
+  .comment-submit:hover{background:var(--indigo-deep);}
+
+  /* survey inline */
+  .survey-bar{background:var(--paper); border-radius:10px; padding:14px 16px; margin-top:14px;}
+  .survey-meta{font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:10px;}
+  .survey-row{display:flex; align-items:center; gap:12px; font-size:0.8rem; margin-bottom:8px; padding:5px 6px; margin-left:-6px; margin-right:-6px; width:calc(100% + 12px); border-radius:8px; cursor:pointer; transition:background 0.15s;}
+  .survey-row:last-child{margin-bottom:0;}
+  .survey-row:hover{background:rgba(29,53,87,0.06);}
+  .survey-row .lbl{width:76px; flex-shrink:0; color:var(--ink-soft); transition:color 0.15s, font-weight 0.15s;}
+  .survey-track{flex:1; height:8px; background:var(--line); border-radius:6px; overflow:hidden;}
+  .survey-fill{height:100%; background:var(--sage); border-radius:6px; width:0%; transition:width 0.5s ease, background 0.2s;}
+  .survey-pct{font-family:'JetBrains Mono', monospace; font-size:0.74rem; width:34px; text-align:right; color:var(--ink-soft);}
+  .survey-row.selected .lbl{color:var(--indigo); font-weight:700;}
+  .survey-row.selected .lbl::after{content:' ✓';}
+  .survey-row.selected .survey-fill{background:var(--indigo);}
+  .survey-bar.closed .survey-row{cursor:default;}
+  .survey-bar.closed .survey-row:hover{background:none;}
+  .survey-bar.closed .survey-fill{background:var(--ink-soft);}
+
+  /* sidebar */
+  .side-card{background:#fff; border:1px solid var(--line); border-radius:18px; padding:24px; margin-bottom:18px;}
+  .side-card h4{font-family:'Fraunces', serif; font-size:1rem; color:var(--indigo-deep); margin-bottom:14px;}
+  .top-thread{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.82rem;}
+  .top-thread:last-child{border-bottom:none;}
+  .top-thread .rank{font-family:'JetBrains Mono', monospace; color:var(--gold-deep); font-weight:700; flex-shrink:0;}
+  .guideline{font-size:0.82rem; color:var(--ink-soft); line-height:1.6; margin-bottom:10px; padding-left:18px; position:relative;}
+  .guideline::before{content:"—"; position:absolute; left:0; color:var(--gold-deep);}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <a href="index.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="19" stroke="#1d3557" stroke-width="1.4"/>
+        <path d="M20 8 L20 32 M8 20 L32 20" stroke="#e2a53c" stroke-width="1.4"/>
+        <circle cx="20" cy="20" r="6" fill="#1d3557"/>
+      </svg>
+      <span class="brand-text">Barangay Portal<span>Digital Community Hub</span></span>
+    </a>
+    <ul class="navlinks">
+      <li><a href="index.html#modules">Modules</a></li>
+      <li><a href="forum.html" style="color:var(--indigo); font-weight:700;">Forum</a></li>
+      <li><a href="complaint.html">Complaints</a></li>
+      <li><a href="index.html#faq">FAQs</a></li>
+    </ul>
+    <button class="nav-cta" onclick="window.location.href='index.html'">← Back Home</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><line class="l1" x1="4" y1="7" x2="20" y2="7"/><line class="l2" x1="4" y1="12" x2="20" y2="12"/><line class="l3" x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </nav>
+</header>
+<script>
+  (function(){
+    var toggle = document.getElementById('navToggle');
+    var links = document.querySelector('.navlinks');
+    if(!toggle || !links) return;
+    toggle.addEventListener('click', function(){
+      var open = links.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        links.classList.remove('open'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded','false');
+      });
+    });
+  })();
+</script>
+
+<div class="page-hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Community Forum</div>
+    <div class="eyebrow" id="activeThreadsCount">Loading threads…</div>
+    <h1>What the barangay is talking about.</h1>
+    <p class="lede">React to ongoing projects, suggest what's next, and weigh in on satisfaction surveys — all visible to your neighbors and to barangay staff.</p>
+  </div>
+</div>
+
+<div class="forum-shell">
+
+  <aside class="filter-rail">
+    <div class="filter-group">
+      <b>Categories</b>
+      <div class="filter-item active" data-filter="all" role="button" tabindex="0"><span>All Threads</span><span class="count">—</span></div>
+      <div class="filter-item" data-filter="feedback" role="button" tabindex="0"><span>Project Feedback</span><span class="count">—</span></div>
+      <div class="filter-item" data-filter="suggestion" role="button" tabindex="0"><span>Suggestions</span><span class="count">—</span></div>
+      <div class="filter-item" data-filter="survey" role="button" tabindex="0"><span>Surveys</span><span class="count">—</span></div>
+    </div>
+    <div class="filter-group">
+      <b>Sort by</b>
+      <div class="filter-item active" data-sort="recent" role="button" tabindex="0"><span>Most Recent</span></div>
+      <div class="filter-item" data-sort="top" role="button" tabindex="0"><span>Most Upvoted</span></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="compose-bar" id="composeBar">
+      <div class="avatar">J</div>
+      <span id="composeLabel">Share feedback, a suggestion, or start a discussion…</span>
+    </div>
+
+    <div class="form-card" id="composeForm" style="display:none; background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:20px;">
+      <div class="category-grid" id="composeCatGrid" style="display:flex; gap:8px; margin-bottom:16px;">
+        <div class="thread-tab compose-cat active" data-cat="feedback" role="button" tabindex="0">Feedback</div>
+        <div class="thread-tab compose-cat" data-cat="suggestion" role="button" tabindex="0">Suggestion</div>
+      </div>
+      <input type="text" id="composeTitle" placeholder="Title — e.g. Streetlight repair follow-up" style="width:100%; border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:0.9rem; margin-bottom:10px; background:var(--paper);">
+      <textarea id="composeBody" placeholder="Share the details…" style="width:100%; min-height:90px; border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:0.9rem; background:var(--paper); resize:vertical;"></textarea>
+
+      <div style="display:flex; align-items:center; gap:14px; margin-top:14px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px 16px;">
+        <div class="toggle" id="composeAnonToggle" role="switch" tabindex="0" aria-checked="false" aria-label="Post anonymously"><i></i></div>
+        <div style="flex:1;">
+          <b id="composeAnonLabel" style="display:block; font-size:0.86rem;">Post with your name</b>
+          <input type="text" id="composeAuthor" placeholder="Your name" style="width:100%; margin-top:8px; border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:0.84rem; background:#fff;">
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button type="button" class="btn-primary" id="composeSubmit">Post to forum</button>
+        <button type="button" class="btn-ghost" id="composeCancel">Cancel</button>
+      </div>
+    </div>
+
+    <div class="thread-tabs">
+      <div class="thread-tab active" data-filter="all">All</div>
+      <div class="thread-tab" data-filter="feedback">Feedback</div>
+      <div class="thread-tab" data-filter="suggestion">Suggestions</div>
+      <div class="thread-tab" data-filter="survey">Surveys</div>
+    </div>
+
+    <div id="threadList"><p style="color:var(--ink-soft); font-size:0.88rem;">Loading threads…</p></div>
+  </main>
+
+  <aside>
+    <div class="side-card">
+      <h4>Trending this week</h4>
+      <div id="trendingList"><span style="color:var(--ink-soft); font-size:0.82rem;">Loading…</span></div>
+    </div>
+    <div class="side-card">
+      <h4>Posting guidelines</h4>
+      <div class="guideline">Stay respectful — this is a shared community space.</div>
+      <div class="guideline">Keep feedback specific: what, where, and when.</div>
+      <div class="guideline">Report urgent issues through Complaints, not the forum.</div>
+    </div>
+  </aside>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>Barangay Portal — official community portal</span>
+      <span><a href="admin.html" style="color:var(--ink-soft); text-decoration:none;">Staff Login →</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function showToast(msg, type){
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.toggle('error', type === 'error');
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  // stable per-browser voter id so the same visitor can't stack votes
+  function getVoterId(){
+    let id = localStorage.getItem('ebarangay_voter_id');
+    if(!id){ id = 'voter-' + Math.random().toString(36).slice(2) + Date.now(); localStorage.setItem('ebarangay_voter_id', id); }
+    return id;
+  }
+  const voterId = getVoterId();
+
+  // let keyboard users activate custom (non-<button>) controls with Enter/Space
+  function enableKeyActivation(el){
+    el.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+    });
+  }
+
+  const CAT_LABEL = { feedback: 'Project Feedback', suggestion: 'Suggestion', survey: 'Survey' };
+  const CAT_TAG_CLASS = { feedback: 'tag-feedback', suggestion: 'tag-suggestion', survey: 'tag-survey' };
+
+  function timeAgo(iso){
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const days = Math.floor(diffMs / 86400000);
+    if(days <= 0) return 'today';
+    if(days === 1) return '1 day ago';
+    if(days < 7) return days + ' days ago';
+    const weeks = Math.floor(days / 7);
+    return weeks === 1 ? '1 week ago' : weeks + ' weeks ago';
+  }
+
+  function commentItemHtml(c){
+    const initial = (c.anonymous ? 'A' : (c.author || 'R').charAt(0).toUpperCase());
+    return `<div class="comment-item">
+      <div class="comment-avatar">${initial}</div>
+      <div class="comment-body">
+        <div class="comment-meta"><b>${c.anonymous ? 'Anonymous Resident' : c.author}</b> · ${timeAgo(c.createdAt)}</div>
+        <div class="comment-text">${c.body}</div>
+      </div>
+    </div>`;
+  }
+
+  function surveyMinutesLeft(t){
+    if(!t.survey) return null;
+    // durationMinutes is the current field; closesInDays is kept as a fallback
+    // for any survey created before minute-level scheduling existed.
+    const durationMinutes = (typeof t.survey.durationMinutes === 'number')
+      ? t.survey.durationMinutes
+      : (typeof t.survey.closesInDays === 'number' ? t.survey.closesInDays * 1440 : 7 * 1440);
+    const closesAt = new Date(t.createdAt).getTime() + durationMinutes * 60000;
+    return Math.ceil((closesAt - Date.now()) / 60000);
+  }
+
+  function formatTimeLeft(minutesLeft){
+    if(minutesLeft === null || minutesLeft <= 0) return '';
+    const days = Math.floor(minutesLeft / 1440);
+    const hours = Math.floor((minutesLeft % 1440) / 60);
+    const mins = minutesLeft % 60;
+    const parts = [];
+    if(days) parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
+    if(hours) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+    // Once we're down into the days/hours range, minutes are just noise —
+    // only show them when the survey is closing within the next hour.
+    if(!days && !hours && mins) parts.push(`${mins} ${mins === 1 ? 'minute' : 'minutes'}`);
+    return parts.length ? parts.join(' ') : 'under a minute';
+  }
+
+  function threadCardHtml(t){
+    const tag = `<span class="thread-tag ${CAT_TAG_CLASS[t.category]}">${CAT_LABEL[t.category]}</span>`;
+    const meta = `Posted by ${t.author}${t.location ? ' · ' + t.location : ''} · ${timeAgo(t.createdAt)}`;
+    const voted = t.votedBy.includes(voterId);
+
+    let surveyHtml = '';
+    if(t.survey){
+      const total = t.survey.options.reduce((s,o)=>s+o.votes,0);
+      const choices = t.survey.voterChoices || {};
+      const myChoice = choices[voterId];
+      const iVoted = myChoice !== undefined;
+      const minutesLeft = surveyMinutesLeft(t);
+      const closed = minutesLeft !== null && minutesLeft <= 0;
+      const closesLabel = closed ? '' : `closes in ${formatTimeLeft(minutesLeft)}`;
+      const metaText = closed
+        ? 'Survey closed'
+        : (iVoted ? 'Tap your pick to change your vote' : `Tap an option to vote · ${closesLabel}`);
+
+      surveyHtml = `<div class="survey-bar ${closed ? 'closed' : ''}" data-closes-label="${closesLabel}">
+        <div class="survey-meta">${metaText}</div>
+        ${t.survey.options.map((o, i) => {
+          const pct = total ? Math.round(o.votes/total*100) : 0;
+          const selected = myChoice === i;
+          return `<div class="survey-row ${selected ? 'selected' : ''}" data-thread="${t.id}" data-option="${i}" role="button" tabindex="0" aria-pressed="${selected}" aria-label="Vote for ${o.label}"><span class="lbl">${o.label}</span><div class="survey-track"><div class="survey-fill" data-pct="${pct}"></div></div><span class="survey-pct">${pct}%</span></div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    const implementBadge = t.implementing
+      ? `<div class="implement-badge">✓ Barangay is implementing this${t.implementNote ? `<span class="note">— ${t.implementNote}</span>` : ''}</div>`
+      : '';
+
+    const voteBtn = t.category === 'survey'
+      ? `<div class="vote-btn" style="pointer-events:none; opacity:0.5;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg><span class="vcount">—</span></div>`
+      : `<div class="vote-btn ${voted ? 'voted' : ''}" data-id="${t.id}" role="button" tabindex="0" aria-pressed="${voted}" aria-label="Upvote this post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7-7 7 7"/></svg><span class="vcount">${t.votes}</span></div>`;
+
+    const commentCount = (t.comments || []).length;
+    const replyLabel = t.category === 'survey'
+      ? `📊 ${t.survey ? t.survey.options.reduce((s,o)=>s+o.votes,0) : 0} responses`
+      : `💬 ${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}`;
+
+    const commentsListHtml = (t.comments && t.comments.length)
+      ? t.comments.map(commentItemHtml).join('')
+      : '<p class="no-comments">No comments yet — be the first to weigh in.</p>';
+
+    const commentToggleBtn = t.category !== 'survey'
+      ? `<button type="button" class="reply-count" data-toggle-comments="${t.id}">${replyLabel}</button>`
+      : `<div class="reply-count" style="cursor:default;">${replyLabel}</div>`;
+
+    const commentsPanel = t.category === 'survey' ? '' : `
+      <div class="comments-wrap" id="comments-${t.id}">
+        <div class="comment-list" id="comment-list-${t.id}">${commentsListHtml}</div>
+        <div class="comment-form">
+          <textarea placeholder="Add a comment…" id="comment-input-${t.id}"></textarea>
+          <div class="comment-form-row">
+            <div class="comment-anon-toggle" id="comment-anon-${t.id}" role="switch" tabindex="0" aria-checked="false" aria-label="Comment anonymously"><i></i></div>
+            <span class="comment-anon-label" id="comment-anon-label-${t.id}">Post with your name</span>
+            <input type="text" class="comment-name-input" id="comment-author-${t.id}" placeholder="Your name">
+          </div>
+          <div class="comment-submit-row"><button type="button" class="comment-submit" data-comment-submit="${t.id}">Post comment</button></div>
+        </div>
+      </div>`;
+
+    return `<div class="thread-card" data-cat="${t.category}">
+      <div class="thread-top"><div>${tag}<h3>${t.title}</h3></div></div>
+      <div class="thread-meta">${meta}</div>
+      <p class="thread-excerpt">${t.body}</p>
+      ${surveyHtml}
+      ${implementBadge}
+      <div class="thread-foot">${voteBtn}${commentToggleBtn}</div>
+      ${commentsPanel}
+    </div>`;
+  }
+
+  let currentFilter = 'all';
+  let currentSort = 'recent';
+
+  async function loadThreads(){
+    const listEl = document.getElementById('threadList');
+    const params = new URLSearchParams();
+    if(currentFilter !== 'all') params.set('category', currentFilter);
+    if(currentSort === 'top') params.set('sort', 'top');
+
+    let threads;
+    try{
+      const res = await fetch('/api/forum/threads?' + params.toString());
+      if(!res.ok) throw new Error('Server responded with an error.');
+      threads = await res.json();
+    } catch(err){
+      listEl.innerHTML = `<p style="color:var(--alert); font-size:0.88rem;">Couldn't load the forum right now. <button type="button" id="retryLoad" style="background:none; border:none; color:var(--indigo); text-decoration:underline; cursor:pointer; font:inherit; padding:0;">Try again</button></p>`;
+      document.getElementById('retryLoad')?.addEventListener('click', loadThreads);
+      return;
+    }
+
+    listEl.innerHTML = threads.length ? threads.map(threadCardHtml).join('') : '<p style="color:var(--ink-soft); font-size:0.88rem;">No threads in this category yet.</p>';
+
+    // animate survey bars in
+    listEl.querySelectorAll('.survey-fill').forEach(el => requestAnimationFrame(() => { el.style.width = el.dataset.pct + '%'; }));
+
+    // wire votes
+    listEl.querySelectorAll('.vote-btn[data-id]').forEach(btn => {
+      enableKeyActivation(btn);
+      btn.addEventListener('click', async () => {
+        btn.style.pointerEvents = 'none';
+        try{
+          const res = await fetch(`/api/forum/threads/${btn.dataset.id}/vote`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ voterId })
+          });
+          if(!res.ok) throw new Error('Could not register your vote.');
+          const data = await res.json();
+          btn.classList.toggle('voted', data.voted);
+          btn.setAttribute('aria-pressed', String(data.voted));
+          btn.querySelector('.vcount').textContent = data.votes;
+        } catch(err){
+          console.error(err);
+          showToast('Could not reach the server — try again in a moment.', 'error');
+        }
+        btn.style.pointerEvents = '';
+      });
+    });
+
+    // wire survey option voting
+    listEl.querySelectorAll('.survey-row[data-thread]').forEach(row => {
+      enableKeyActivation(row);
+      row.addEventListener('click', async () => {
+        const bar = row.closest('.survey-bar');
+        if(bar.classList.contains('closed')) return;
+
+        bar.style.pointerEvents = 'none';
+        try{
+          const res = await fetch(`/api/forum/threads/${row.dataset.thread}/survey/vote`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ optionIndex: Number(row.dataset.option), voterId })
+          });
+          const data = await res.json();
+          if(!res.ok){ showToast(data.error || 'Could not cast your vote.', 'error'); return; }
+
+          bar.querySelectorAll('.survey-row').forEach((r, i) => {
+            const opt = data.options[i];
+            const isSelected = data.selected === i;
+            r.classList.toggle('selected', isSelected);
+            r.setAttribute('aria-pressed', String(isSelected));
+            r.querySelector('.survey-fill').style.width = opt.pct + '%';
+            r.querySelector('.survey-fill').dataset.pct = opt.pct;
+            r.querySelector('.survey-pct').textContent = opt.pct + '%';
+          });
+
+          const metaEl = bar.querySelector('.survey-meta');
+          if(metaEl){
+            metaEl.textContent = data.selected !== null
+              ? 'Tap your pick to change your vote'
+              : `Tap an option to vote · ${bar.dataset.closesLabel}`;
+          }
+
+          const totalResponses = data.options.reduce((s, o) => s + o.votes, 0);
+          const replyEl = bar.closest('.thread-card').querySelector('.reply-count');
+          if(replyEl) replyEl.textContent = `📊 ${totalResponses} responses`;
+        } catch(err){
+          console.error(err);
+          showToast('Could not reach the server — check your connection and try again.', 'error');
+        }
+        bar.style.pointerEvents = '';
+      });
+    });
+
+    // wire comment section toggle
+    listEl.querySelectorAll('[data-toggle-comments]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('comments-' + btn.dataset.toggleComments).classList.toggle('open');
+      });
+    });
+
+    // wire per-thread comment anonymous toggle
+    listEl.querySelectorAll('.comment-anon-toggle').forEach(toggle => {
+      enableKeyActivation(toggle);
+      const id = toggle.id.replace('comment-anon-', '');
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('on');
+        const isAnon = toggle.classList.contains('on');
+        toggle.setAttribute('aria-checked', String(isAnon));
+        document.getElementById('comment-anon-label-' + id).textContent = isAnon ? 'Commenting anonymously' : 'Post with your name';
+        const nameInput = document.getElementById('comment-author-' + id);
+        nameInput.style.display = isAnon ? 'none' : 'block';
+      });
+    });
+
+    // wire comment submit
+    listEl.querySelectorAll('[data-comment-submit]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.commentSubmit;
+        const input = document.getElementById('comment-input-' + id);
+        const body = input.value.trim();
+        const isAnon = document.getElementById('comment-anon-' + id).classList.contains('on');
+        const author = document.getElementById('comment-author-' + id).value.trim();
+
+        if(!body){ showToast('Write something before posting.', 'error'); return; }
+        if(!isAnon && !author){ showToast('Add your name, or switch to commenting anonymously.', 'error'); return; }
+
+        btn.disabled = true; btn.textContent = 'Posting…';
+        try{
+          const res = await fetch(`/api/forum/threads/${id}/comments`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ anonymous: isAnon, author, body })
+          });
+          if(!res.ok){
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Could not post comment.');
+          }
+          const comment = await res.json();
+          const list = document.getElementById('comment-list-' + id);
+          const emptyMsg = list.querySelector('.no-comments');
+          if(emptyMsg) emptyMsg.remove();
+          list.insertAdjacentHTML('beforeend', commentItemHtml(comment));
+          input.value = '';
+
+          // bump the visible reply count on the toggle button
+          const toggleBtn = document.querySelector(`[data-toggle-comments="${id}"]`);
+          if(toggleBtn){
+            const n = list.querySelectorAll('.comment-item').length;
+            toggleBtn.textContent = `💬 ${n} ${n === 1 ? 'comment' : 'comments'}`;
+          }
+        } catch(err){
+          showToast(err.message, 'error');
+        } finally {
+          btn.disabled = false; btn.textContent = 'Post comment';
+        }
+      });
+    });
+
+    loadTrending();
+  }
+
+  async function loadTrending(){
+    const res = await fetch('/api/forum/threads?sort=top');
+    const threads = await res.json();
+    const top3 = threads.filter(t => t.category !== 'survey').slice(0, 3);
+    document.getElementById('trendingList').innerHTML = top3.map((t, i) =>
+      `<div class="top-thread"><span class="rank">${String(i+1).padStart(2,'0')}</span><span>${t.title} — ${t.votes} upvotes</span></div>`
+    ).join('') || '<span style="color:var(--ink-soft); font-size:0.82rem;">Nothing trending yet.</span>';
+  }
+
+  // filter rail + thread tabs both drive the same filter state
+  const filterItems = document.querySelectorAll('.filter-item[data-filter]');
+  const threadTabs = document.querySelectorAll('.thread-tabs .thread-tab');
+  function setFilter(f){
+    currentFilter = f;
+    filterItems.forEach(fi => fi.classList.toggle('active', fi.dataset.filter === f));
+    threadTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.filter === f));
+    loadThreads();
+  }
+  filterItems.forEach(item => { enableKeyActivation(item); item.addEventListener('click', () => setFilter(item.dataset.filter)); });
+  threadTabs.forEach(tab => { enableKeyActivation(tab); tab.addEventListener('click', () => setFilter(tab.dataset.filter)); });
+
+  document.querySelectorAll('.filter-item[data-sort]').forEach(item => {
+    enableKeyActivation(item);
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.filter-item[data-sort]').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      currentSort = item.dataset.sort;
+      loadThreads();
+    });
+  });
+
+  // sidebar counts — pulled live so they never drift from real data
+  async function updateFilterCounts(){
+    try{
+      const res = await fetch('/api/forum/threads');
+      if(!res.ok) return;
+      const all = await res.json();
+      const counts = { all: all.length, feedback: 0, suggestion: 0, survey: 0 };
+      all.forEach(t => { if(counts[t.category] !== undefined) counts[t.category]++; });
+      filterItems.forEach(item => {
+        const countEl = item.querySelector('.count');
+        if(countEl && counts[item.dataset.filter] !== undefined) countEl.textContent = counts[item.dataset.filter];
+      });
+      // This mirrors exactly what's posted in the forum right now — it goes
+      // up the moment a new post is approved and down the moment one is
+      // removed, since it's always recomputed from the live thread list.
+      const activeEl = document.getElementById('activeThreadsCount');
+      if(activeEl) activeEl.textContent = `${all.length} active thread${all.length === 1 ? '' : 's'}`;
+    } catch(err){ /* leave placeholder counts if this fails */ }
+  }
+
+  // compose form
+  const composeBar = document.getElementById('composeBar');
+  const composeForm = document.getElementById('composeForm');
+  const composeLabel = document.getElementById('composeLabel');
+  const composeCatBtns = document.querySelectorAll('.compose-cat');
+  const composeAnonToggle = document.getElementById('composeAnonToggle');
+  const composeAnonLabel = document.getElementById('composeAnonLabel');
+  const composeAuthor = document.getElementById('composeAuthor');
+  let composeCat = 'feedback';
+
+  composeBar.addEventListener('click', () => { composeForm.style.display = 'block'; composeBar.style.display = 'none'; });
+  document.getElementById('composeCancel').addEventListener('click', () => { composeForm.style.display = 'none'; composeBar.style.display = 'flex'; });
+  composeCatBtns.forEach(btn => {
+    enableKeyActivation(btn);
+    btn.addEventListener('click', () => {
+      composeCatBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      composeCat = btn.dataset.cat;
+    });
+  });
+
+  composeAnonToggle.addEventListener('click', () => {
+    composeAnonToggle.classList.toggle('on');
+    const isAnon = composeAnonToggle.classList.contains('on');
+    composeAnonToggle.setAttribute('aria-checked', String(isAnon));
+    composeAnonLabel.textContent = isAnon ? 'Posting anonymously' : 'Post with your name';
+    composeAuthor.style.display = isAnon ? 'none' : 'block';
+  });
+  enableKeyActivation(composeAnonToggle);
+
+  document.getElementById('composeSubmit').addEventListener('click', async () => {
+    const title = document.getElementById('composeTitle').value.trim();
+    const body = document.getElementById('composeBody').value.trim();
+    const isAnon = composeAnonToggle.classList.contains('on');
+    const author = composeAuthor.value.trim();
+
+    if(!title || !body){ showToast('Please add both a title and details before posting.', 'error'); return; }
+    if(!isAnon && !author){ showToast('Add your name, or switch to posting anonymously.', 'error'); return; }
+
+    const btn = document.getElementById('composeSubmit');
+    btn.disabled = true; btn.textContent = 'Posting…';
+    try{
+      const res = await fetch('/api/forum/threads', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ category: composeCat, title, body, anonymous: isAnon, author })
+      });
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Could not post — please try again.');
+      }
+      document.getElementById('composeTitle').value = '';
+      document.getElementById('composeBody').value = '';
+      composeAuthor.value = '';
+      composeForm.style.display = 'none';
+      composeBar.style.display = 'flex';
+      composeLabel.textContent = 'Thanks — your post is awaiting barangay staff approval before it appears here.';
+      setTimeout(() => { composeLabel.textContent = 'Share feedback, a suggestion, or start a discussion…'; }, 4000);
+    } catch(err){
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Post to forum';
+    }
+  });
+
+  loadThreads();
+  updateFilterCounts();
+</script>
+
+</body>
+</html>

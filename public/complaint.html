@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>File a Complaint — Barangay Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .page-hero{
+    padding:70px 32px 20px; text-align:left; position:relative; overflow:hidden;
+  }
+  .page-hero .wrap{max-width:1140px;}
+  .breadcrumb{font-family:'JetBrains Mono', monospace; font-size:0.74rem; color:var(--ink-soft); margin-bottom:18px;}
+  .breadcrumb a{color:var(--indigo); text-decoration:none;}
+  .breadcrumb a:hover{text-decoration:underline;}
+  .page-hero h1{font-size:clamp(2rem,4.4vw,3rem); color:var(--indigo-deep); max-width:640px;}
+  .page-hero p.lede{color:var(--ink-soft); font-size:1.02rem; max-width:560px; margin-top:16px; line-height:1.6;}
+
+  .form-shell{
+    display:grid; grid-template-columns:1fr 320px; gap:28px;
+    padding:40px 32px 100px; max-width:1140px; margin:0 auto;
+  }
+  @media (max-width:860px){ .form-shell{grid-template-columns:1fr;} }
+
+  .form-card{
+    background:#fff; border:1px solid var(--line); border-radius:20px;
+    padding:40px; box-shadow:var(--shadow-soft);
+  }
+  .field{margin-bottom:22px;}
+  .field label{
+    display:block; font-size:0.82rem; font-weight:600; margin-bottom:8px; color:var(--indigo-deep);
+  }
+  .field label .req{color:var(--alert); margin-left:2px;}
+  .field .hint{font-size:0.74rem; color:var(--ink-soft); margin-top:6px;}
+  .field select, .field input[type="text"], .field textarea{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:13px 14px;
+    font-family:'Inter', sans-serif; font-size:0.92rem; color:var(--ink); background:var(--paper);
+    transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .field select:focus, .field input:focus, .field textarea:focus{
+    outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(29,53,87,0.12); background:#fff;
+  }
+  .field textarea{resize:vertical; min-height:120px;}
+  .row-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:520px){ .row-2{grid-template-columns:1fr;} }
+
+  .category-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  @media (max-width:600px){ .category-grid{grid-template-columns:repeat(2,1fr);} }
+  .cat-chip{
+    border:1px solid var(--line); border-radius:12px; padding:14px 10px; text-align:center;
+    cursor:pointer; font-size:0.8rem; font-weight:600; color:var(--ink-soft); background:var(--paper);
+    transition:all 0.2s; user-select:none;
+  }
+  .cat-chip .em{display:block; font-size:1.3rem; margin-bottom:6px;}
+  .cat-chip:hover{border-color:var(--indigo); color:var(--indigo);}
+  .cat-chip.selected{background:var(--indigo); border-color:var(--indigo); color:#fff;}
+
+  .anon-block{
+    display:flex; align-items:flex-start; gap:14px; background:var(--paper);
+    border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin-top:6px;
+  }
+  .anon-block .toggle{margin-top:2px;}
+  .anon-block b{display:block; font-size:0.88rem; margin-bottom:4px;}
+  .anon-block p{margin:0; font-size:0.8rem; color:var(--ink-soft); line-height:1.5;}
+  .contact-fields{max-height:0; overflow:hidden; transition:max-height 0.4s ease, margin 0.4s ease;}
+  .contact-fields.show{max-height:220px; margin-top:20px;}
+
+  .upload-zone{
+    border:1.5px dashed var(--line); border-radius:14px; padding:26px; text-align:center;
+    color:var(--ink-soft); font-size:0.84rem; cursor:pointer; transition:border-color 0.2s, background 0.2s;
+  }
+  .upload-zone:hover, .upload-zone.dragover{border-color:var(--gold-deep); background:var(--paper);}
+  .upload-zone svg{width:28px; height:28px; margin-bottom:8px; color:var(--ink-soft);}
+  .upload-zone.has-photo svg{display:none;}
+  #photoPreview{display:none; max-width:100%; max-height:220px; border-radius:10px; margin-top:12px; box-shadow:var(--shadow-soft);}
+  .upload-zone.has-photo #photoPreview{display:inline-block;}
+  .photo-remove{
+    display:none; margin-top:12px; background:none; border:1px solid var(--line); color:var(--alert);
+    padding:7px 16px; border-radius:999px; font-size:0.78rem; cursor:pointer; font-family:inherit; transition:background 0.2s;
+  }
+  .photo-remove:hover{background:rgba(184,65,47,0.08);}
+  .upload-zone.has-photo .photo-remove{display:inline-block;}
+
+  .submit-row{display:flex; align-items:center; justify-content:space-between; margin-top:32px; flex-wrap:wrap; gap:14px;}
+  .submit-btn{
+    background:var(--indigo); color:#fff; border:none; padding:15px 30px; border-radius:999px;
+    font-weight:600; font-size:0.94rem; cursor:pointer; transition:transform 0.2s, background 0.2s;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .submit-btn:hover{background:var(--indigo-deep); transform:translateY(-2px); box-shadow:var(--shadow-soft);}
+  .submit-note{font-size:0.76rem; color:var(--ink-soft);}
+
+  /* sidebar */
+  .side-card{
+    background:var(--indigo-deep); color:rgba(223,230,237,0.85); border-radius:20px; padding:30px;
+    margin-bottom:20px;
+  }
+  .side-card h4{font-family:'Fraunces', serif; font-size:1.1rem; color:#fff; margin-bottom:14px;}
+  .side-card p{font-size:0.85rem; line-height:1.6; color:rgba(223,230,237,0.68); margin:0 0 14px;}
+  .side-step{display:flex; gap:12px; align-items:flex-start; margin-bottom:14px;}
+  .side-step .n{
+    width:22px; height:22px; border-radius:50%; background:var(--gold); color:var(--indigo-deep);
+    font-family:'JetBrains Mono', monospace; font-size:0.7rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .side-step span{font-size:0.83rem; color:rgba(223,230,237,0.85); line-height:1.5;}
+
+  .side-card.light{background:#fff; border:1px solid var(--line); color:var(--ink);}
+  .side-card.light h4{color:var(--indigo-deep);}
+  .side-card.light p{color:var(--ink-soft);}
+  .em-row{display:flex; justify-content:space-between; font-size:0.83rem; padding:9px 0; border-bottom:1px solid var(--line);}
+  .em-row:last-child{border-bottom:none;}
+  .em-row b{font-family:'JetBrains Mono', monospace; font-weight:600; color:var(--indigo);}
+
+  /* modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(18,35,59,0.55); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+    opacity:0; transition:opacity 0.3s ease;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-overlay.visible{opacity:1;}
+  .modal-box{
+    background:#fff; border-radius:22px; max-width:440px; width:100%; padding:44px 38px 36px;
+    text-align:center; position:relative; transform:translateY(24px) scale(0.96); opacity:0;
+    transition:transform 0.4s cubic-bezier(.2,.9,.25,1.1), opacity 0.4s ease;
+    box-shadow:0 30px 70px -20px rgba(18,35,59,0.5);
+  }
+  .modal-overlay.visible .modal-box{transform:translateY(0) scale(1); opacity:1;}
+  .modal-close{
+    position:absolute; top:18px; right:18px; background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:1.2rem; line-height:1; padding:4px;
+  }
+  .modal-close:hover{color:var(--ink);}
+  .check-wrap{
+    width:76px; height:76px; border-radius:50%; background:rgba(95,127,91,0.12);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 22px;
+  }
+  .check-wrap svg{width:38px; height:38px;}
+  .check-wrap svg path{
+    stroke:var(--sage); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:48; stroke-dashoffset:48;
+    animation:drawCheck 0.6s ease forwards 0.25s;
+  }
+  @keyframes drawCheck{ to{stroke-dashoffset:0;} }
+  .modal-box h3{font-size:1.35rem; color:var(--indigo-deep); margin-bottom:10px;}
+  .modal-box p{font-size:0.9rem; color:var(--ink-soft); line-height:1.6; margin:0 0 22px;}
+  .ref-box{
+    background:var(--paper); border:1px dashed var(--line); border-radius:12px; padding:16px;
+    font-family:'JetBrains Mono', monospace; margin-bottom:24px;
+  }
+  .ref-box .rlabel{font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft); margin-bottom:6px;}
+  .ref-box .rnum{font-size:1.3rem; font-weight:600; color:var(--indigo-deep);}
+  .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+
+  .field.error select, .field.error input, .field.error textarea{border-color:var(--alert); box-shadow:0 0 0 3px rgba(184,65,47,0.1);}
+  .field .err-msg{display:none; color:var(--alert); font-size:0.74rem; margin-top:6px;}
+  .field.error .err-msg{display:block;}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <a href="index.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="19" stroke="#1d3557" stroke-width="1.4"/>
+        <path d="M20 8 L20 32 M8 20 L32 20" stroke="#e2a53c" stroke-width="1.4"/>
+        <circle cx="20" cy="20" r="6" fill="#1d3557"/>
+      </svg>
+      <span class="brand-text">Barangay Portal<span>Digital Community Hub</span></span>
+    </a>
+    <ul class="navlinks">
+      <li><a href="index.html#modules">Modules</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="complaint.html" style="color:var(--indigo); font-weight:700;">Complaints</a></li>
+      <li><a href="index.html#faq">FAQs</a></li>
+    </ul>
+    <button class="nav-cta" onclick="window.location.href='index.html'">← Back Home</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><line class="l1" x1="4" y1="7" x2="20" y2="7"/><line class="l2" x1="4" y1="12" x2="20" y2="12"/><line class="l3" x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </nav>
+</header>
+<script>
+  (function(){
+    var toggle = document.getElementById('navToggle');
+    var links = document.querySelector('.navlinks');
+    if(!toggle || !links) return;
+    toggle.addEventListener('click', function(){
+      var open = links.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        links.classList.remove('open'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded','false');
+      });
+    });
+  })();
+</script>
+
+<div class="page-hero">
+  <div class="wrap">
+    <div class="breadcrumb"><a href="index.html">Home</a> / Complaint &amp; Concern Center</div>
+    <div class="eyebrow">File a report</div>
+    <h1>Tell us what's wrong. We'll take it from here.</h1>
+    <p class="lede">Every submission gets a reference number so you can track it under Status — whether you sign it or file anonymously.</p>
+  </div>
+</div>
+
+<form class="form-shell" id="complaintForm" novalidate>
+  <div class="form-card">
+    <div class="field">
+      <label>What kind of concern is this? <span class="req">*</span></label>
+      <div class="category-grid" id="catGrid">
+        <div class="cat-chip" data-cat="Noise" role="radio" tabindex="0" aria-checked="false"><span class="em">🔊</span>Noise</div>
+        <div class="cat-chip" data-cat="Sanitation" role="radio" tabindex="0" aria-checked="false"><span class="em">🗑️</span>Sanitation</div>
+        <div class="cat-chip" data-cat="Peace & Order" role="radio" tabindex="0" aria-checked="false"><span class="em">🚨</span>Peace &amp; Order</div>
+        <div class="cat-chip" data-cat="Infrastructure" role="radio" tabindex="0" aria-checked="false"><span class="em">🚧</span>Infrastructure</div>
+        <div class="cat-chip" data-cat="Animal Concern" role="radio" tabindex="0" aria-checked="false"><span class="em">🐕</span>Animal</div>
+        <div class="cat-chip" data-cat="Other" role="radio" tabindex="0" aria-checked="false"><span class="em">📝</span>Other</div>
+      </div>
+      <div class="err-msg">Please choose a category.</div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label for="location">Location <span class="req">*</span></label>
+        <input type="text" id="location" placeholder="e.g. Purok 3, near the basketball court">
+        <div class="err-msg">Please tell us where this is happening.</div>
+      </div>
+      <div class="field">
+        <label for="datetime">When did this happen?</label>
+        <input type="text" id="datetime" placeholder="e.g. Ongoing, most nights this week">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="description">Describe the concern <span class="req">*</span></label>
+      <textarea id="description" placeholder="Give us the details — what's happening, how often, and who's affected."></textarea>
+      <div class="err-msg">A short description helps us respond faster.</div>
+    </div>
+
+    <div class="field">
+      <label>Attach a photo (optional)</label>
+      <input type="file" id="photoInput" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+      <div class="upload-zone" id="uploadZone" role="button" tabindex="0" aria-label="Attach a photo, or drag one here">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+        <div id="uploadLabel">Click to attach, or drag a file here</div>
+        <img id="photoPreview" alt="Selected photo preview">
+        <button type="button" class="photo-remove" id="photoRemove">Remove photo</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="anon-block">
+        <div class="toggle on" id="anonToggle" role="switch" tabindex="0" aria-checked="true" aria-label="Submit anonymously"><i></i></div>
+        <div>
+          <b id="anonLabel">Submitting anonymously</b>
+          <p>Your name won't be attached to this report. Barangay staff will still see the details needed to act on it.</p>
+          <div class="contact-fields" id="contactFields">
+            <div class="row-2">
+              <div class="field" style="margin-bottom:0;">
+                <label for="fullname">Full name</label>
+                <input type="text" id="fullname" placeholder="Juan Dela Cruz">
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label for="contact">Contact number</label>
+                <input type="text" id="contact" placeholder="09XX XXX XXXX">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="submit-btn">Submit complaint →</button>
+      <span class="submit-note">You'll get a reference number immediately after submitting.</span>
+    </div>
+  </div>
+
+  <aside>
+    <div class="side-card">
+      <h4>How it's handled</h4>
+      <div class="side-step"><span class="n">1</span><span>Your report is logged and given a reference number.</span></div>
+      <div class="side-step"><span class="n">2</span><span>A barangay official is assigned to review it.</span></div>
+      <div class="side-step"><span class="n">3</span><span>Track progress anytime under Complaint Status.</span></div>
+    </div>
+    <div class="side-card light">
+      <h4>Need something urgent instead?</h4>
+      <p>For active emergencies, call these directly rather than filing a report.</p>
+      <div class="em-row"><span>Barangay Hall</span><b>(02) 8-372-1122</b></div>
+      <div class="em-row"><span>Police (117)</span><b>(02) 8-372-3341</b></div>
+      <div class="em-row"><span>Fire Station</span><b>(02) 8-372-7788</b></div>
+    </div>
+  </aside>
+</form>
+
+<section style="padding:20px 32px 90px;">
+  <div class="wrap" style="max-width:1140px;">
+    <div class="form-card" style="max-width:700px; margin:0 auto;">
+      <div class="panel-head" style="margin-bottom:6px;"><h3 style="font-size:1.3rem; color:var(--indigo-deep); font-family:'Fraunces',serif;">Already filed a complaint?</h3></div>
+      <p class="panel-desc" style="margin-bottom:20px;">Enter your reference number to check its current status.</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input type="text" id="trackInput" placeholder="e.g. BC-1000" style="flex:1; min-width:180px; border:1px solid var(--line); border-radius:10px; padding:13px 14px; font-family:'JetBrains Mono',monospace; font-size:0.9rem; background:var(--paper);">
+        <button type="button" id="trackBtn" class="submit-btn">Check status</button>
+      </div>
+      <div id="trackResult" style="margin-top:26px; display:none;">
+        <div class="stepper" id="trackStepper"></div>
+        <p id="trackMeta" style="font-size:0.8rem; color:var(--ink-soft); margin-top:18px;"></p>
+      </div>
+      <p id="trackError" style="display:none; color:var(--alert); font-size:0.84rem; margin-top:16px;"></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>Barangay Portal — official community portal</span>
+      <span><a href="admin.html" style="color:var(--ink-soft); text-decoration:none;">Staff Login →</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- confirmation modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="check-wrap">
+      <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+    </div>
+    <h3>Complaint submitted</h3>
+    <p>Thanks for the report — a barangay official will review it shortly. Save your reference number to check its status anytime.</p>
+    <div class="ref-box">
+      <div class="rlabel">Reference number</div>
+      <div class="rnum" id="refNumber">BC-0000</div>
+    </div>
+    <div class="modal-actions">
+      <a class="btn-ghost" href="index.html#tracker">View status tracker</a>
+      <button class="btn-primary" id="modalDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function showToast(msg, type){
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.toggle('error', type === 'error');
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+
+  // category selection
+  const chips = document.querySelectorAll('.cat-chip');
+  let selectedCat = null;
+  chips.forEach(c => {
+    enableKeyActivation(c);
+    c.addEventListener('click', () => {
+      chips.forEach(x => { x.classList.remove('selected'); x.setAttribute('aria-checked', 'false'); });
+      c.classList.add('selected');
+      c.setAttribute('aria-checked', 'true');
+      selectedCat = c.dataset.cat;
+      document.getElementById('catGrid').closest('.field').classList.remove('error');
+    });
+  });
+
+  // anon toggle
+  const anonToggle = document.getElementById('anonToggle');
+  const contactFields = document.getElementById('contactFields');
+  const anonLabel = document.getElementById('anonLabel');
+  function enableKeyActivation(el){
+    el.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+    });
+  }
+  enableKeyActivation(anonToggle);
+  anonToggle.addEventListener('click', () => {
+    anonToggle.classList.toggle('on');
+    const isAnon = anonToggle.classList.contains('on');
+    anonToggle.setAttribute('aria-checked', String(isAnon));
+    contactFields.classList.toggle('show', !isAnon);
+    anonLabel.textContent = isAnon ? 'Submitting anonymously' : 'Submitting with your name';
+  });
+
+  // photo upload — reads the file, downsizes it client-side, and keeps a
+  // base64 copy ready to send with the complaint
+  const uploadZone = document.getElementById('uploadZone');
+  const photoInput = document.getElementById('photoInput');
+  const uploadLabel = document.getElementById('uploadLabel');
+  const photoPreview = document.getElementById('photoPreview');
+  const photoRemoveBtn = document.getElementById('photoRemove');
+  let photoDataUrl = null;
+
+  function resetPhoto(){
+    photoDataUrl = null;
+    photoInput.value = '';
+    photoPreview.src = '';
+    uploadLabel.textContent = 'Click to attach, or drag a file here';
+    uploadZone.classList.remove('has-photo');
+  }
+
+  function handlePhotoFile(file){
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      showToast('Please attach an image file.', 'error');
+      return;
+    }
+    if(file.size > 12 * 1024 * 1024){
+      showToast('That image is too large — please pick one under 12MB.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // downscale so a full-res phone photo doesn't bloat the request
+        const maxDim = 1280;
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        photoDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+        photoPreview.src = photoDataUrl;
+        uploadLabel.textContent = `✓ ${file.name} attached`;
+        uploadZone.classList.add('has-photo');
+      };
+      img.onerror = () => showToast('Could not read that image — try a different file.', 'error');
+      img.src = reader.result;
+    };
+    reader.onerror = () => showToast('Could not read that image — try a different file.', 'error');
+    reader.readAsDataURL(file);
+  }
+
+  uploadZone.addEventListener('click', (e) => {
+    if(e.target === photoRemoveBtn) return;
+    photoInput.click();
+  });
+  uploadZone.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); photoInput.click(); }
+  });
+  photoInput.addEventListener('change', () => handlePhotoFile(photoInput.files[0]));
+
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    handlePhotoFile(e.dataTransfer.files[0]);
+  });
+
+  photoRemoveBtn.addEventListener('click', (e) => { e.stopPropagation(); resetPhoto(); });
+
+  // form validation + submit
+  const form = document.getElementById('complaintForm');
+  const overlay = document.getElementById('modalOverlay');
+  const modalBox = document.getElementById('modalBox');
+  const refNumber = document.getElementById('refNumber');
+
+  function fieldWrap(el){ return el.closest('.field'); }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    let valid = true;
+
+    const catField = document.getElementById('catGrid').closest('.field');
+    if(!selectedCat){ catField.classList.add('error'); valid = false; } else { catField.classList.remove('error'); }
+
+    const loc = document.getElementById('location');
+    if(!loc.value.trim()){ fieldWrap(loc).classList.add('error'); valid = false; } else { fieldWrap(loc).classList.remove('error'); }
+
+    const desc = document.getElementById('description');
+    if(!desc.value.trim()){ fieldWrap(desc).classList.add('error'); valid = false; } else { fieldWrap(desc).classList.remove('error'); }
+
+    if(!valid){
+      form.querySelector('.field.error').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    const isAnon = anonToggle.classList.contains('on');
+    const submitBtn = form.querySelector('.submit-btn');
+    const originalLabel = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
+    try{
+      const res = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: selectedCat,
+          location: loc.value.trim(),
+          datetime: document.getElementById('datetime').value.trim(),
+          description: desc.value.trim(),
+          anonymous: isAnon,
+          fullname: isAnon ? null : document.getElementById('fullname').value.trim(),
+          contact: isAnon ? null : document.getElementById('contact').value.trim(),
+          photo: photoDataUrl
+        })
+      });
+
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Something went wrong submitting your complaint.');
+      }
+
+      const data = await res.json();
+      refNumber.textContent = data.reference;
+      overlay.classList.add('show');
+      requestAnimationFrame(() => overlay.classList.add('visible'));
+      document.body.style.overflow = 'hidden';
+    } catch(err){
+      showToast(err.message || 'Could not reach the server. Is it running? (npm start)', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
+    }
+  });
+
+  function closeModal(){
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+    setTimeout(() => overlay.classList.remove('show'), 300);
+  }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalDone').addEventListener('click', () => { closeModal(); form.reset(); chips.forEach(x=>x.classList.remove('selected')); selectedCat=null; resetPhoto(); });
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && overlay.classList.contains('show')) closeModal(); });
+
+  // complaint status tracker
+  const STATUS_STEPS = ['Filed', 'Under Review', 'Resolved'];
+  const trackBtn = document.getElementById('trackBtn');
+  const trackInput = document.getElementById('trackInput');
+  const trackResult = document.getElementById('trackResult');
+  const trackStepper = document.getElementById('trackStepper');
+  const trackMeta = document.getElementById('trackMeta');
+  const trackError = document.getElementById('trackError');
+
+  async function checkStatus(){
+    const ref = trackInput.value.trim();
+    trackError.style.display = 'none';
+    trackResult.style.display = 'none';
+    if(!ref){ trackError.textContent = 'Enter a reference number first.'; trackError.style.display = 'block'; return; }
+
+    trackBtn.disabled = true;
+    trackBtn.textContent = 'Checking…';
+    try{
+      const res = await fetch('/api/complaints/' + encodeURIComponent(ref));
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'No complaint found with that reference number.');
+      }
+      const data = await res.json();
+      const currentIdx = STATUS_STEPS.indexOf(data.status);
+
+      trackStepper.innerHTML = STATUS_STEPS.map((step, i) => {
+        const done = i <= currentIdx;
+        const entry = data.timeline.find(t => t.status === step);
+        return `<div class="step">
+          <div class="bar"><i style="width:${done ? '100%':'0%'}; animation:none; background:${i===currentIdx ? 'var(--gold-deep)':'var(--sage)'};"></i></div>
+          <b>${step}</b>
+          <small>${entry ? new Date(entry.at).toLocaleDateString() + (entry.note ? ' · ' + entry.note : '') : 'pending'}</small>
+        </div>`;
+      }).join('');
+
+      trackMeta.textContent = `${data.category} · ${data.location} · ${data.anonymous ? 'Filed anonymously' : 'Filed with contact info'}`;
+      // Note: photos are intentionally not part of this public response —
+      // they're only visible to barangay staff, so there's nothing to
+      // render here even if a photo was attached when filing.
+      trackResult.style.display = 'block';
+    } catch(err){
+      trackError.textContent = err.message;
+      trackError.style.display = 'block';
+    } finally {
+      trackBtn.disabled = false;
+      trackBtn.textContent = 'Check status';
+    }
+  }
+  trackBtn.addEventListener('click', checkStatus);
+  trackInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') checkStatus(); });
+</script>
+
+</body>
+</html>

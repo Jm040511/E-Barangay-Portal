@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Staff Dashboard — Barangay Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .admin-shell{max-width:1300px; margin:0 auto; padding:50px 32px 100px;}
+
+  /* login */
+  .login-wrap{
+    min-height:70vh; display:flex; align-items:center; justify-content:center; padding:60px 32px;
+  }
+  .login-card{
+    background:#fff; border:1px solid var(--line); border-radius:20px; padding:44px 40px;
+    max-width:400px; width:100%; box-shadow:var(--shadow-soft);
+  }
+  .login-card h1{font-size:1.5rem; color:var(--indigo-deep); margin-bottom:8px;}
+  .login-card p.sub{color:var(--ink-soft); font-size:0.88rem; margin-bottom:28px;}
+  .login-card label{display:block; font-size:0.82rem; font-weight:600; margin-bottom:8px; color:var(--indigo-deep);}
+  .login-card input{
+    width:100%; border:1px solid var(--line); border-radius:10px; padding:12px 14px; font-size:0.9rem;
+    background:var(--paper); margin-bottom:18px; font-family:'Inter',sans-serif;
+  }
+  .login-card input:focus{outline:none; border-color:var(--indigo); box-shadow:0 0 0 3px rgba(29,53,87,0.12); background:#fff;}
+  .login-btn{
+    width:100%; background:var(--indigo); color:#fff; border:none; padding:13px; border-radius:999px;
+    font-weight:600; font-size:0.92rem; cursor:pointer; transition:background 0.2s;
+  }
+  .login-btn:hover{background:var(--indigo-deep);}
+  .login-err{color:var(--alert); font-size:0.82rem; margin-top:14px; display:none;}
+  .login-hint{
+    margin-top:22px; padding-top:18px; border-top:1px solid var(--line);
+    font-size:0.75rem; color:var(--ink-soft); font-family:'JetBrains Mono', monospace; line-height:1.6;
+  }
+
+  /* dashboard */
+  #dashboard{display:none;}
+  .dash-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; flex-wrap:wrap; gap:16px;}
+  .dash-head h1{font-size:1.9rem; color:var(--indigo-deep);}
+  .dash-head p{color:var(--ink-soft); font-size:0.9rem; margin-top:6px;}
+  .logout-btn{
+    background:transparent; border:1px solid var(--line); color:var(--ink-soft); padding:10px 18px;
+    border-radius:999px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+  .logout-btn:hover{border-color:var(--alert); color:var(--alert);}
+
+  /* per-feature nav + pages */
+  .dash-layout{display:grid; grid-template-columns:216px 1fr; gap:26px; align-items:start;}
+  @media (max-width:900px){ .dash-layout{grid-template-columns:1fr;} }
+
+  .admin-nav{
+    position:sticky; top:24px; display:flex; flex-direction:column; gap:6px;
+    background:#fff; border:1px solid var(--line); border-radius:16px; padding:12px;
+  }
+  @media (max-width:900px){ .admin-nav{position:static; flex-direction:row; overflow-x:auto;} }
+  .admin-nav-btn{
+    display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:10px; border:none;
+    background:none; color:var(--ink-soft); font-size:0.86rem; font-weight:600; cursor:pointer; text-align:left;
+    font-family:'Inter',sans-serif; transition:background 0.2s, color 0.2s; white-space:nowrap;
+  }
+  .admin-nav-btn:hover{background:var(--paper);}
+  .admin-nav-btn.active{background:var(--indigo); color:#fff;}
+  .admin-nav-btn .badge{
+    margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:0.68rem; background:rgba(226,165,60,0.22);
+    color:var(--gold-deep); padding:2px 7px; border-radius:999px; flex-shrink:0;
+  }
+  .admin-nav-btn .badge:empty{display:none;}
+  .admin-nav-btn.active .badge{background:rgba(255,255,255,0.22); color:#fff;}
+
+  .admin-page{display:none; padding:0;}
+  .admin-page.active{display:block; padding:0; animation:pageIn 0.35s ease;}
+  @keyframes pageIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .admin-page h2{font-size:1.4rem; color:var(--indigo-deep); font-family:'Fraunces',serif; margin-bottom:4px;}
+  .admin-page .page-sub{color:var(--ink-soft); font-size:0.86rem; margin-bottom:22px;}
+
+  .panel-card{background:#fff; border:1px solid var(--line); border-radius:18px; padding:26px; margin-bottom:22px;}
+  .panel-card h3{font-size:1.1rem; color:var(--indigo-deep); margin-bottom:4px; font-family:'Fraunces',serif;}
+  .panel-card .panel-note{font-size:0.8rem; color:var(--ink-soft); margin:2px 0 16px;}
+
+  /* two-up split sections (complaints, forum, suggestions) */
+  .split-grid{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media (max-width:1080px){ .split-grid{grid-template-columns:1fr;} }
+  .split-col h4{
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace; margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .split-col h4 .dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+  .dot-pending{background:var(--gold-deep);}
+  .dot-done{background:var(--sage);}
+  .split-col-scroll{max-height:560px; overflow-y:auto; padding-right:4px;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.85rem;}
+  th{text-align:left; padding:10px 8px; color:var(--ink-soft); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; font-family:'JetBrains Mono',monospace; border-bottom:1px solid var(--line);}
+  td{padding:12px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .ref-cell{font-family:'JetBrains Mono', monospace; font-weight:600; color:var(--indigo);}
+  .status-pill{
+    display:inline-block; padding:4px 10px; border-radius:999px; font-size:0.72rem; font-weight:600;
+  }
+  .status-Filed{background:rgba(226,165,60,0.16); color:var(--gold-deep);}
+  .status-Under-Review{background:var(--indigo-soft); color:var(--indigo);}
+  .status-Resolved{background:rgba(95,127,91,0.16); color:var(--sage);}
+  .anon-flag{font-size:0.7rem; color:var(--ink-soft); font-family:'JetBrains Mono',monospace;}
+  select.status-select{
+    border:1px solid var(--line); border-radius:8px; padding:6px 8px; font-size:0.78rem; background:var(--paper);
+    font-family:'Inter',sans-serif;
+  }
+  .update-btn{
+    background:var(--indigo); color:#fff; border:none; padding:7px 12px; border-radius:8px;
+    font-size:0.76rem; font-weight:600; cursor:pointer; margin-left:6px;
+  }
+  .update-btn:hover{background:var(--indigo-deep);}
+  .empty-note{color:var(--ink-soft); font-size:0.85rem; padding:16px 0;}
+
+  .pend-card{border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:12px; background:var(--paper);}
+  .pend-card:last-child{margin-bottom:0;}
+  .pend-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
+  .pend-cat{font-family:'JetBrains Mono',monospace; font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em; padding:3px 8px; border-radius:999px; background:var(--indigo-soft); color:var(--indigo); flex-shrink:0;}
+  .pend-card h4{font-size:0.92rem; font-family:'Fraunces',serif; color:var(--ink); margin:4px 0 6px;}
+  .pend-meta{font-size:0.74rem; color:var(--ink-soft); margin-bottom:8px;}
+  .pend-body{font-size:0.84rem; color:var(--ink-soft); line-height:1.5; margin-bottom:14px;}
+  .pend-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .approve-btn, .reject-btn, .archive-btn, .delete-btn, .unarchive-btn{
+    border:none; padding:8px 16px; border-radius:8px; font-size:0.78rem; font-weight:600; cursor:pointer;
+  }
+  .approve-btn{background:var(--sage); color:#fff;}
+  .approve-btn:hover{opacity:0.88;}
+  .reject-btn, .delete-btn{background:transparent; border:1px solid var(--line); color:var(--alert);}
+  .reject-btn:hover, .delete-btn:hover{border-color:var(--alert); background:rgba(184,65,47,0.06);}
+  .archive-btn{background:transparent; border:1px solid var(--line); color:var(--ink-soft);}
+  .archive-btn:hover{border-color:var(--indigo); color:var(--indigo);}
+  .unarchive-btn{background:var(--gold); color:var(--indigo-deep);}
+  .unarchive-btn:hover{opacity:0.88;}
+  .archived-tag{
+    display:inline-block; font-size:0.66rem; font-weight:700; color:var(--ink-soft); background:var(--line);
+    padding:3px 9px; border-radius:999px; margin-left:8px; text-transform:uppercase; letter-spacing:0.04em;
+  }
+
+  .sugg-card{border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:10px; background:var(--paper);}
+  .sugg-card:last-child{margin-bottom:0;}
+  .sugg-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .sugg-top h4{font-size:0.9rem; font-family:'Fraunces',serif; color:var(--ink); margin:0;}
+  .sugg-votes{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--ink-soft); flex-shrink:0;}
+  .sugg-implement-btn{
+    margin-top:10px; border:none; padding:7px 14px; border-radius:8px; font-size:0.76rem; font-weight:600; cursor:pointer;
+  }
+  .sugg-implement-btn.mark{background:var(--sage); color:#fff;}
+  .sugg-implement-btn.unmark{background:transparent; border:1px solid var(--line); color:var(--ink-soft);}
+  .sugg-implementing-tag{
+    display:inline-block; margin-top:8px; font-size:0.7rem; font-weight:700; color:var(--sage);
+    background:rgba(95,127,91,0.14); padding:3px 9px; border-radius:999px;
+  }
+
+  #survOptions{display:flex; flex-direction:column; gap:8px; margin-bottom:0;}
+  .surv-opt-row{display:flex; gap:8px; align-items:center;}
+  .surv-opt-row input{margin-bottom:0; flex:1;}
+  .surv-opt-remove{
+    flex-shrink:0; width:34px; height:34px; border-radius:8px; border:1px solid var(--line); background:#fff;
+    color:var(--alert); cursor:pointer; font-size:0.9rem; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+  .surv-opt-remove:hover{border-color:var(--alert); background:rgba(184,65,47,0.06);}
+  .surv-opt-remove:disabled{opacity:0.35; cursor:not-allowed;}
+
+  .closed-surv-card{border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:12px; background:var(--paper);}
+  .closed-surv-card:last-child{margin-bottom:0;}
+  .closed-surv-card h4{font-size:0.9rem; font-family:'Fraunces',serif; color:var(--ink); margin:0 0 4px;}
+  .closed-surv-meta{font-size:0.72rem; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-bottom:10px;}
+  .closed-opt-row{display:flex; align-items:center; gap:10px; font-size:0.8rem; margin-bottom:6px;}
+  .closed-opt-row .lbl{width:110px; flex-shrink:0; color:var(--ink-soft);}
+  .closed-opt-track{flex:1; height:7px; background:var(--line); border-radius:6px; overflow:hidden;}
+  .closed-opt-fill{height:100%; background:var(--ink-soft); border-radius:6px;}
+  .closed-opt-pct{font-family:'JetBrains Mono',monospace; font-size:0.72rem; width:34px; text-align:right; color:var(--ink-soft);}
+
+  .ann-form label{display:block; font-size:0.78rem; font-weight:600; color:var(--indigo-deep); margin-bottom:6px;}
+  .ann-form select, .ann-form input, .ann-form textarea{
+    width:100%; border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-size:0.85rem;
+    background:var(--paper); margin-bottom:14px; font-family:'Inter',sans-serif;
+  }
+  .ann-form textarea{min-height:80px; resize:vertical;}
+  .ann-submit{
+    background:var(--gold); color:var(--indigo-deep); border:none; padding:10px 18px; border-radius:999px;
+    font-weight:700; font-size:0.84rem; cursor:pointer;
+  }
+  .toast{
+    position:fixed; bottom:24px; right:24px; background:var(--indigo-deep); color:#fff; padding:14px 20px;
+    border-radius:12px; font-size:0.85rem; box-shadow:var(--shadow-soft); opacity:0; transform:translateY(10px);
+    transition:all 0.3s; pointer-events:none; z-index:500;
+  }
+  .toast.show{opacity:1; transform:translateY(0);}
+  .toast.error{background:var(--alert);}
+
+  /* announcement image upload */
+  .ann-upload-zone{
+    border:1.5px dashed var(--line); border-radius:12px; padding:18px; text-align:center;
+    color:var(--ink-soft); font-size:0.82rem; cursor:pointer; transition:border-color 0.2s, background 0.2s; margin-bottom:14px;
+  }
+  .ann-upload-zone:hover{border-color:var(--gold-deep); background:var(--paper);}
+  .ann-upload-zone svg{width:22px; height:22px; margin-bottom:6px; color:var(--ink-soft);}
+  #annPhotoPreview{display:none; max-width:100%; max-height:160px; border-radius:10px; margin-top:10px; box-shadow:var(--shadow-soft);}
+  .ann-upload-zone.has-photo #annPhotoPreview{display:inline-block;}
+  .ann-photo-remove{display:none; margin-top:10px; background:none; border:1px solid var(--line); color:var(--alert); padding:6px 14px; border-radius:999px; font-size:0.76rem; cursor:pointer; font-family:inherit;}
+  .ann-upload-zone.has-photo .ann-photo-remove{display:inline-block;}
+  .ann-list-card{
+    display:flex; gap:14px; align-items:flex-start; border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; margin-bottom:10px; background:var(--paper); cursor:pointer; transition:background 0.15s;
+  }
+  .ann-list-card:last-child{margin-bottom:0;}
+  .ann-list-card:hover{background:#fff; border-color:var(--gold-deep);}
+  .ann-list-thumb{width:52px; height:52px; border-radius:10px; object-fit:cover; flex-shrink:0; background:var(--indigo-soft);}
+  .ann-list-body{flex:1; min-width:0;}
+  .ann-list-body h4{font-size:0.9rem; font-family:'Fraunces',serif; color:var(--ink); margin:0 0 3px;}
+  .ann-list-meta{font-size:0.74rem; color:var(--ink-soft);}
+  .ann-list-snippet{font-size:0.8rem; color:var(--ink-soft); margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ann-list-actions{flex-shrink:0;}
+
+  .anmodal-overlay{
+    position:fixed; inset:0; background:rgba(18,35,59,0.55); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+    opacity:0; transition:opacity 0.25s ease;
+  }
+  .anmodal-overlay.show{display:flex;}
+  .anmodal-overlay.visible{opacity:1;}
+  .anmodal-box{
+    background:#fff; border-radius:22px; max-width:560px; width:100%; max-height:86vh; overflow-y:auto;
+    padding:36px; position:relative; transform:translateY(20px) scale(0.97); opacity:0;
+    transition:transform 0.35s cubic-bezier(.2,.9,.25,1.1), opacity 0.35s ease;
+    box-shadow:0 30px 70px -20px rgba(18,35,59,0.5);
+  }
+  .anmodal-overlay.visible .anmodal-box{transform:translateY(0) scale(1); opacity:1;}
+  .anmodal-close{
+    position:absolute; top:18px; right:18px; background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:1.2rem; line-height:1; padding:4px;
+  }
+  .anmodal-close:hover{color:var(--ink);}
+  .anmodal-tag{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase;
+    letter-spacing:0.06em; padding:4px 10px; border-radius:999px; background:var(--indigo-soft); color:var(--indigo); margin-bottom:10px;
+  }
+  .anmodal-box h3{font-size:1.3rem; color:var(--indigo-deep); font-family:'Fraunces',serif; margin:2px 0 8px; padding-right:26px;}
+  .anmodal-meta{font-size:0.78rem; color:var(--ink-soft); margin-bottom:18px;}
+  .anmodal-img{max-width:100%; max-height:340px; border-radius:14px; box-shadow:var(--shadow-soft); display:block; margin-bottom:18px;}
+  .anmodal-body{font-size:0.92rem; color:var(--ink); line-height:1.7; white-space:pre-wrap; margin-bottom:22px;}
+  .anmodal-delete{
+    border:1px solid var(--line); color:var(--alert); background:transparent; padding:9px 18px; border-radius:8px;
+    font-size:0.8rem; font-weight:600; cursor:pointer;
+  }
+  .anmodal-delete:hover{border-color:var(--alert); background:rgba(184,65,47,0.06);}
+
+  /* complaint rows open a detail modal */
+  tr.complaint-row{cursor:pointer; transition:background 0.15s;}
+  tr.complaint-row:hover{background:var(--paper);}
+  tr.complaint-row td select, tr.complaint-row td button{cursor:pointer;}
+
+  .cmodal-overlay{
+    position:fixed; inset:0; background:rgba(18,35,59,0.55); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+    opacity:0; transition:opacity 0.25s ease;
+  }
+  .cmodal-overlay.show{display:flex;}
+  .cmodal-overlay.visible{opacity:1;}
+  .cmodal-box{
+    background:#fff; border-radius:22px; max-width:560px; width:100%; max-height:86vh; overflow-y:auto;
+    padding:36px; position:relative; transform:translateY(20px) scale(0.97); opacity:0;
+    transition:transform 0.35s cubic-bezier(.2,.9,.25,1.1), opacity 0.35s ease;
+    box-shadow:0 30px 70px -20px rgba(18,35,59,0.5);
+  }
+  .cmodal-overlay.visible .cmodal-box{transform:translateY(0) scale(1); opacity:1;}
+  .cmodal-close{
+    position:absolute; top:18px; right:18px; background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:1.2rem; line-height:1; padding:4px;
+  }
+  .cmodal-close:hover{color:var(--ink);}
+  .cmodal-box .ref-cell{font-size:1.1rem;}
+  .cmodal-head{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:6px; padding-right:26px;}
+  .cmodal-box h3{font-size:1.25rem; color:var(--indigo-deep); font-family:'Fraunces',serif; margin:2px 0 4px;}
+  .cmodal-meta{font-size:0.8rem; color:var(--ink-soft); margin-bottom:20px;}
+  .cmodal-section{margin-bottom:20px;}
+  .cmodal-section h4{font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); font-family:'JetBrains Mono',monospace; margin-bottom:8px;}
+  .cmodal-section p{font-size:0.9rem; color:var(--ink); line-height:1.6; white-space:pre-wrap;}
+  .cmodal-photo{max-width:100%; max-height:400px; border-radius:14px; box-shadow:var(--shadow-soft); display:block;}
+  .cmodal-update{display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding-top:16px; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <a href="index.html" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="19" stroke="#1d3557" stroke-width="1.4"/>
+        <path d="M20 8 L20 32 M8 20 L32 20" stroke="#e2a53c" stroke-width="1.4"/>
+        <circle cx="20" cy="20" r="6" fill="#1d3557"/>
+      </svg>
+      <span class="brand-text">Barangay Portal<span>Staff Dashboard</span></span>
+    </a>
+    <button class="nav-cta" onclick="window.location.href='index.html'">← Back to Site</button>
+  </nav>
+</header>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h1>Staff Login</h1>
+    <p class="sub">Sign in to manage complaints and post announcements.</p>
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" autocomplete="username" value="admin">
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="current-password">
+      <button type="submit" class="login-btn">Sign in</button>
+      <p class="login-err" id="loginErr"></p>
+    </form>
+    <div class="login-hint">Staff use only. Contact the barangay office if you need access.</div>
+  </div>
+</div>
+
+<div class="admin-shell" id="dashboard">
+  <div class="dash-head">
+    <div>
+      <h1>Staff Dashboard</h1>
+      <p>Signed in as <b id="whoami"></b></p>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+  </div>
+
+  <div class="dash-layout">
+    <nav class="admin-nav" id="adminNav">
+      <button class="admin-nav-btn active" data-page="complaints">🗂️ Complaints<span class="badge" id="navBadgeComplaints"></span></button>
+      <button class="admin-nav-btn" data-page="announcements">📣 Announcements</button>
+      <button class="admin-nav-btn" data-page="forum">💬 Forum<span class="badge" id="navBadgeForum"></span></button>
+      <button class="admin-nav-btn" data-page="suggestions">💡 Suggestions</button>
+      <button class="admin-nav-btn" data-page="survey">📊 Survey</button>
+    </nav>
+
+    <div>
+      <!-- COMPLAINTS PAGE -->
+      <section class="admin-page active" id="page-complaints">
+        <h2>Complaints</h2>
+        <p class="page-sub">Complaints are split by whether they still need action or have already been closed out.</p>
+        <div class="split-grid">
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-pending"></span>Still Pending</h4>
+            <div class="split-col-scroll" id="complaintsPendingWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-done"></span>Already Done</h4>
+            <div class="split-col-scroll" id="complaintsDoneWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ANNOUNCEMENTS PAGE -->
+      <section class="admin-page" id="page-announcements">
+        <h2>Announcements</h2>
+        <p class="page-sub">Post an update for residents. Attaching an image is optional but shows up right in the feed.</p>
+        <div class="panel-card ann-form" style="max-width:560px;">
+          <label for="annCategory">Category</label>
+          <select id="annCategory">
+            <option>Emergency Alert</option>
+            <option>Weather Forecast</option>
+            <option>Job Opening</option>
+            <option>Public Advisory</option>
+            <option>Upcoming Event</option>
+            <option>Latest News and Updates</option>
+          </select>
+          <label for="annTitle">Title</label>
+          <input type="text" id="annTitle" placeholder="e.g. Road closure on Rizal St.">
+          <label for="annBody">Details</label>
+          <textarea id="annBody" placeholder="Give residents the full context…"></textarea>
+
+          <label>Attach an image (optional)</label>
+          <input type="file" id="annPhotoInput" accept="image/png,image/jpeg,image/gif,image/webp" hidden>
+          <div class="ann-upload-zone" id="annUploadZone" role="button" tabindex="0" aria-label="Attach an image, or drag one here">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+            <div id="annUploadLabel">Click to attach, or drag a file here</div>
+            <img id="annPhotoPreview" alt="Selected image preview">
+            <button type="button" class="ann-photo-remove" id="annPhotoRemove">Remove image</button>
+          </div>
+
+          <button class="ann-submit" id="annSubmit">Post announcement</button>
+        </div>
+
+        <div class="panel-card">
+          <h3>Posted Announcements</h3>
+          <p class="panel-note">Click any announcement to see the full text. Delete removes it from the site for everyone.</p>
+          <div class="split-col-scroll" id="announcementsWrap"><p class="empty-note">Loading…</p></div>
+        </div>
+      </section>
+
+      <!-- FORUM PAGE -->
+      <section class="admin-page" id="page-forum">
+        <h2>Forum</h2>
+        <p class="page-sub">New posts wait for approval on the left. Once approved, a post moves to the right and stays there — archive it to hide it from residents, or delete it for good.</p>
+        <div class="split-grid">
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-pending"></span>Pending Approval<span class="badge" style="margin-left:auto; background:rgba(226,165,60,0.22); color:var(--gold-deep); font-family:'JetBrains Mono',monospace; font-size:0.68rem; padding:2px 7px; border-radius:999px;" id="pendingCount"></span></h4>
+            <div class="split-col-scroll" id="pendingWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-done"></span>Approved Posts</h4>
+            <div class="split-col-scroll" id="approvedWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUGGESTIONS PAGE -->
+      <section class="admin-page" id="page-suggestions">
+        <h2>Manage Suggestions</h2>
+        <p class="page-sub">Mark a good idea as something the barangay is going ahead with — it'll show a badge on the public forum.</p>
+        <div class="split-grid">
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-done"></span>Marked as Implementing</h4>
+            <div class="split-col-scroll" id="suggestionsMarkedWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+          <div class="panel-card split-col">
+            <h4><span class="dot dot-pending"></span>Not Marked Yet</h4>
+            <div class="split-col-scroll" id="suggestionsUnmarkedWrap"><p class="empty-note">Loading…</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SURVEY PAGE -->
+      <section class="admin-page" id="page-survey">
+        <h2>Post a Survey</h2>
+        <p class="page-sub">Goes live on the forum immediately — no approval step needed since staff is posting it. It disappears from the public forum on its own once the closing day passes.</p>
+        <div class="panel-card ann-form" style="max-width:560px;">
+          <label for="survTitle">Title</label>
+          <input type="text" id="survTitle" placeholder="e.g. Q4 Satisfaction Survey">
+          <label for="survBody">Description</label>
+          <textarea id="survBody" placeholder="What is this survey about?"></textarea>
+          <label>Closes in</label>
+          <div class="surv-duration-row" style="display:flex; gap:10px; margin-bottom:16px;">
+            <div style="flex:1;">
+              <input type="number" id="survClosesDays" min="0" step="1" placeholder="0" value="7">
+              <span class="surv-duration-unit" style="font-size:0.72rem; color:var(--ink-soft, #888);">days</span>
+            </div>
+            <div style="flex:1;">
+              <input type="number" id="survClosesHours" min="0" step="1" placeholder="0" value="0">
+              <span class="surv-duration-unit" style="font-size:0.72rem; color:var(--ink-soft, #888);">hours</span>
+            </div>
+            <div style="flex:1;">
+              <input type="number" id="survClosesMinutes" min="0" step="1" placeholder="0" value="0">
+              <span class="surv-duration-unit" style="font-size:0.72rem; color:var(--ink-soft, #888);">minutes</span>
+            </div>
+          </div>
+          <p class="panel-note" style="margin:-10px 0 16px;">Combine fields as needed — e.g. 1 day + 30 minutes, or just 30 minutes for a quick poll. At least 1 minute total.</p>
+          <label>Options</label>
+          <div id="survOptions"></div>
+          <button type="button" class="btn-ghost" id="survAddOption" style="margin:10px 0 16px; padding:8px 14px; font-size:0.78rem;">+ Add another option</button>
+          <button class="ann-submit" id="survSubmit">Post survey</button>
+        </div>
+
+        <div class="panel-card">
+          <h3>Closed Surveys</h3>
+          <p class="panel-note">Once a survey's closing day is reached, it moves here automatically and disappears from the public forum.</p>
+          <div id="closedSurveysWrap"><p class="empty-note">Loading…</p></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="cmodal-overlay" id="cmodalOverlay">
+  <div class="cmodal-box" id="cmodalBox">
+    <button class="cmodal-close" id="cmodalClose" aria-label="Close">✕</button>
+    <div class="cmodal-head">
+      <div>
+        <span class="ref-cell" id="cmodalRef"></span>
+        <h3 id="cmodalCategory"></h3>
+      </div>
+      <span class="status-pill" id="cmodalStatus"></span>
+    </div>
+    <p class="cmodal-meta" id="cmodalMeta"></p>
+
+    <div class="cmodal-section">
+      <h4>Full description</h4>
+      <p id="cmodalDescription"></p>
+    </div>
+
+    <div class="cmodal-section" id="cmodalPhotoSection" style="display:none;">
+      <h4>Attached photo</h4>
+      <img class="cmodal-photo" id="cmodalPhoto" alt="Photo attached to this complaint">
+    </div>
+
+    <div class="cmodal-section">
+      <h4>Filed by</h4>
+      <p id="cmodalFiledBy"></p>
+    </div>
+
+    <div class="cmodal-update">
+      <select class="status-select" id="cmodalStatusSelect"></select>
+      <button class="update-btn" id="cmodalUpdateBtn">Update status</button>
+    </div>
+  </div>
+</div>
+
+<div class="anmodal-overlay" id="anmodalOverlay">
+  <div class="anmodal-box">
+    <button class="anmodal-close" id="anmodalClose" aria-label="Close">✕</button>
+    <span class="anmodal-tag" id="anmodalTag"></span>
+    <h3 id="anmodalTitle"></h3>
+    <p class="anmodal-meta" id="anmodalMeta"></p>
+    <img class="anmodal-img" id="anmodalImg" alt="Announcement image" style="display:none;">
+    <p class="anmodal-body" id="anmodalBody"></p>
+    <button class="anmodal-delete" id="anmodalDeleteBtn">🗑 Delete this announcement</button>
+  </div>
+</div>
+
+<script>
+  const loginWrap = document.getElementById('loginWrap');
+  const dashboard = document.getElementById('dashboard');
+  const loginForm = document.getElementById('loginForm');
+  const loginErr = document.getElementById('loginErr');
+  const toast = document.getElementById('toast');
+
+  function showToast(msg, type){
+    toast.textContent = msg;
+    toast.classList.toggle('error', type === 'error');
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
+  function escapeHtml(str){
+    if(!str) return '';
+    return str.replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // --- per-feature page navigation ---
+  const navBtns = document.querySelectorAll('.admin-nav-btn');
+  const pages = document.querySelectorAll('.admin-page');
+  function showPage(name){
+    navBtns.forEach(b => b.classList.toggle('active', b.dataset.page === name));
+    pages.forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  }
+  navBtns.forEach(btn => btn.addEventListener('click', () => showPage(btn.dataset.page)));
+
+  async function checkSession(){
+    const res = await fetch('/api/admin/me');
+    const data = await res.json();
+    if(data.isAdmin){
+      loginWrap.style.display = 'none';
+      dashboard.style.display = 'block';
+      document.getElementById('whoami').textContent = data.username;
+      loadComplaints();
+      loadPending();
+      loadApprovedForum();
+      loadSuggestions();
+      loadClosedSurveys();
+      loadAnnouncements();
+    } else {
+      loginWrap.style.display = 'flex';
+      dashboard.style.display = 'none';
+    }
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginErr.style.display = 'none';
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    try{
+      const res = await fetch('/api/admin/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Login failed.');
+      }
+      await checkSession();
+    } catch(err){
+      loginErr.textContent = err.message;
+      loginErr.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    checkSession();
+  });
+
+  const CAT_LABEL = { feedback: 'Project Feedback', suggestion: 'Suggestion', survey: 'Survey' };
+
+  function timeAgo(iso){
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const hrs = Math.floor(diffMs / 3600000);
+    if(hrs < 1) return 'just now';
+    if(hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  // ===================== FORUM: pending + approved =====================
+
+  async function loadPending(){
+    const wrap = document.getElementById('pendingWrap');
+    const countEl = document.getElementById('pendingCount');
+    const navBadge = document.getElementById('navBadgeForum');
+    const res = await fetch('/api/forum/threads/pending');
+    if(!res.ok){ wrap.innerHTML = '<p class="empty-note">Could not load pending posts.</p>'; return; }
+    const pending = await res.json();
+
+    countEl.textContent = pending.length || '';
+    navBadge.textContent = pending.length || '';
+
+    if(!pending.length){
+      wrap.innerHTML = '<p class="empty-note">Nothing waiting for review right now.</p>';
+      return;
+    }
+
+    wrap.innerHTML = pending.map(t => `
+      <div class="pend-card" data-id="${t.id}">
+        <div class="pend-top">
+          <span class="pend-cat">${CAT_LABEL[t.category] || t.category}</span>
+        </div>
+        <h4>${escapeHtml(t.title)}</h4>
+        <div class="pend-meta">By ${escapeHtml(t.author)}${t.location ? ' · ' + escapeHtml(t.location) : ''} · ${timeAgo(t.createdAt)}</div>
+        <p class="pend-body">${escapeHtml(t.body)}</p>
+        <div class="pend-actions">
+          <button class="approve-btn" data-id="${t.id}">✓ Approve</button>
+          <button class="reject-btn" data-id="${t.id}">✕ Reject</button>
+        </div>
+      </div>`).join('');
+
+    wrap.querySelectorAll('.approve-btn').forEach(btn => btn.addEventListener('click', () => actOnThread(btn.dataset.id, 'approve')));
+    wrap.querySelectorAll('.reject-btn').forEach(btn => btn.addEventListener('click', () => actOnThread(btn.dataset.id, 'reject')));
+  }
+
+  async function actOnThread(id, action){
+    const card = document.querySelector(`#pendingWrap .pend-card[data-id="${id}"]`);
+    if(card){ card.style.opacity = '0.5'; card.style.pointerEvents = 'none'; }
+    try{
+      const res = await fetch(`/api/forum/threads/${id}/${action}`, { method: 'POST' });
+      if(!res.ok) throw new Error('Action failed.');
+      showToast(action === 'approve' ? 'Post approved — now live on the forum.' : 'Post rejected and removed.');
+      loadPending();
+      if(action === 'approve'){ loadApprovedForum(); loadSuggestions(); }
+    } catch(err){
+      showToast(err.message);
+      if(card){ card.style.opacity = ''; card.style.pointerEvents = ''; }
+    }
+  }
+
+  async function loadApprovedForum(){
+    const wrap = document.getElementById('approvedWrap');
+    const res = await fetch('/api/forum/threads/approved');
+    if(!res.ok){ wrap.innerHTML = '<p class="empty-note">Could not load approved posts.</p>'; return; }
+    const approved = await res.json();
+
+    if(!approved.length){
+      wrap.innerHTML = '<p class="empty-note">No approved posts yet.</p>';
+      return;
+    }
+
+    wrap.innerHTML = approved.map(t => `
+      <div class="pend-card" data-id="${t.id}">
+        <div class="pend-top">
+          <span class="pend-cat">${CAT_LABEL[t.category] || t.category}</span>
+          ${t.archived ? '<span class="archived-tag">Archived — hidden</span>' : ''}
+        </div>
+        <h4>${escapeHtml(t.title)}</h4>
+        <div class="pend-meta">By ${escapeHtml(t.author)}${t.location ? ' · ' + escapeHtml(t.location) : ''} · ${timeAgo(t.createdAt)} · ▲ ${t.votes}</div>
+        <p class="pend-body">${escapeHtml(t.body)}</p>
+        <div class="pend-actions">
+          ${t.archived
+            ? `<button class="unarchive-btn" data-id="${t.id}">↺ Unarchive (show again)</button>`
+            : `<button class="archive-btn" data-id="${t.id}">🗄 Archive (hide from forum)</button>`
+          }
+          <button class="delete-btn" data-id="${t.id}">🗑 Delete</button>
+        </div>
+      </div>`).join('');
+
+    wrap.querySelectorAll('.archive-btn').forEach(btn => btn.addEventListener('click', () => setArchived(btn.dataset.id, true)));
+    wrap.querySelectorAll('.unarchive-btn').forEach(btn => btn.addEventListener('click', () => setArchived(btn.dataset.id, false)));
+    wrap.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', () => deleteThread(btn.dataset.id)));
+  }
+
+  async function setArchived(id, archived){
+    const card = document.querySelector(`#approvedWrap .pend-card[data-id="${id}"]`);
+    if(card){ card.style.opacity = '0.5'; card.style.pointerEvents = 'none'; }
+    try{
+      const res = await fetch(`/api/forum/threads/${id}/archive`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ archived })
+      });
+      if(!res.ok) throw new Error('Could not update this post.');
+      showToast(archived ? 'Post archived — hidden from residents.' : 'Post unarchived — visible again.');
+      loadApprovedForum();
+      loadSuggestions();
+    } catch(err){
+      showToast(err.message);
+      if(card){ card.style.opacity = ''; card.style.pointerEvents = ''; }
+    }
+  }
+
+  async function deleteThread(id){
+    if(!confirm('Permanently delete this post? This cannot be undone.')) return;
+    const card = document.querySelector(`#approvedWrap .pend-card[data-id="${id}"]`);
+    if(card){ card.style.opacity = '0.5'; card.style.pointerEvents = 'none'; }
+    try{
+      const res = await fetch(`/api/forum/threads/${id}`, { method: 'DELETE' });
+      if(!res.ok) throw new Error('Could not delete this post.');
+      showToast('Post deleted.');
+      loadApprovedForum();
+      loadSuggestions();
+    } catch(err){
+      showToast(err.message);
+      if(card){ card.style.opacity = ''; card.style.pointerEvents = ''; }
+    }
+  }
+
+  // ===================== COMPLAINTS: pending vs done =====================
+
+  const STATUS_STEPS = ['Filed', 'Under Review', 'Resolved'];
+  let complaintsCache = [];
+
+  function complaintRowHtml(c){
+    return `
+      <tr class="complaint-row" data-ref="${c.reference}" tabindex="0" role="button" aria-label="View full complaint ${c.reference}">
+        <td><span class="ref-cell">${c.reference}</span>${c.photo ? ' 📷' : ''}<br><span class="anon-flag">${escapeHtml(c.description || '').slice(0, 46)}${(c.description || '').length > 46 ? '…' : ''}</span></td>
+        <td>${c.category}<br><span class="anon-flag">${escapeHtml(c.location)}${c.datetime ? ' · ' + escapeHtml(c.datetime) : ''}</span></td>
+        <td>${c.anonymous
+            ? '<span class="anon-flag">🔒 Anonymous</span>'
+            : `${escapeHtml(c.fullname) || '<span class="anon-flag">(no name given)</span>'}<br><span class="anon-flag">${escapeHtml(c.contact) || 'no contact given'}</span>`
+          }</td>
+        <td><span class="status-pill status-${c.status.replace(' ', '-')}">${c.status}</span></td>
+        <td>
+          <select class="status-select" data-ref="${c.reference}">
+            ${STATUS_STEPS.map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button class="update-btn" data-ref="${c.reference}">Update</button>
+        </td>
+      </tr>`;
+  }
+
+  function renderComplaintTable(wrapId, list, emptyMsg){
+    const wrap = document.getElementById(wrapId);
+    if(!list.length){
+      wrap.innerHTML = `<p class="empty-note">${emptyMsg}</p>`;
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Reference / Details</th><th>Category / Location</th><th>Filed By</th><th>Status</th><th>Update</th></tr></thead>
+      <tbody>${list.map(complaintRowHtml).join('')}</tbody>
+    </table>`;
+
+    wrap.querySelectorAll('.update-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ref = btn.dataset.ref;
+        const select = wrap.querySelector(`select[data-ref="${ref}"]`);
+        updateComplaintStatus(ref, select.value, btn);
+      });
+    });
+    wrap.querySelectorAll('.status-select').forEach(sel => sel.addEventListener('click', (e) => e.stopPropagation()));
+    wrap.querySelectorAll('.complaint-row').forEach(row => {
+      row.addEventListener('click', () => openComplaintModal(row.dataset.ref));
+      row.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openComplaintModal(row.dataset.ref); }
+      });
+    });
+  }
+
+  async function loadComplaints(){
+    const res = await fetch('/api/complaints');
+    if(!res.ok){
+      document.getElementById('complaintsPendingWrap').innerHTML = '<p class="empty-note">Could not load complaints.</p>';
+      document.getElementById('complaintsDoneWrap').innerHTML = '<p class="empty-note">Could not load complaints.</p>';
+      return;
+    }
+    const complaints = await res.json();
+    complaintsCache = complaints;
+
+    const pending = complaints.filter(c => c.status !== 'Resolved');
+    const done = complaints.filter(c => c.status === 'Resolved');
+
+    document.getElementById('navBadgeComplaints').textContent = pending.length || '';
+    renderComplaintTable('complaintsPendingWrap', pending, 'Nothing pending right now.');
+    renderComplaintTable('complaintsDoneWrap', done, 'No resolved complaints yet.');
+  }
+
+  async function updateComplaintStatus(ref, status, btn){
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = '…';
+    try{
+      const res = await fetch(`/api/complaints/${ref}`, {
+        method: 'PATCH', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ status })
+      });
+      if(!res.ok) throw new Error('Update failed.');
+      showToast(`${ref} marked ${status}.`);
+      closeComplaintModal();
+      loadComplaints();
+    } catch(err){
+      showToast(err.message, 'error');
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
+
+  // complaint detail modal
+  const cmodalOverlay = document.getElementById('cmodalOverlay');
+
+  function openComplaintModal(ref){
+    const c = complaintsCache.find(x => x.reference === ref);
+    if(!c) return;
+
+    document.getElementById('cmodalRef').textContent = c.reference;
+    document.getElementById('cmodalCategory').textContent = c.category;
+    document.getElementById('cmodalStatus').textContent = c.status;
+    document.getElementById('cmodalStatus').className = `status-pill status-${c.status.replace(' ', '-')}`;
+    document.getElementById('cmodalMeta').textContent =
+      `${c.location}${c.datetime ? ' · ' + c.datetime : ''} · Filed ${new Date(c.createdAt).toLocaleString()}`;
+    document.getElementById('cmodalDescription').textContent = c.description || '(no description given)';
+    document.getElementById('cmodalFiledBy').innerHTML = c.anonymous
+      ? '🔒 Anonymous — no name or contact info was collected'
+      : `${escapeHtml(c.fullname) || '(no name given)'}${c.contact ? ' · ' + escapeHtml(c.contact) : ' · no contact given'}`;
+
+    const photoSection = document.getElementById('cmodalPhotoSection');
+    const photoEl = document.getElementById('cmodalPhoto');
+    if(c.photo){ photoEl.src = c.photo; photoSection.style.display = 'block'; }
+    else { photoEl.src = ''; photoSection.style.display = 'none'; }
+
+    const select = document.getElementById('cmodalStatusSelect');
+    select.innerHTML = STATUS_STEPS.map(s => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${s}</option>`).join('');
+
+    const updateBtn = document.getElementById('cmodalUpdateBtn');
+    updateBtn.disabled = false; updateBtn.textContent = 'Update status';
+    updateBtn.onclick = async () => {
+      updateBtn.disabled = true; updateBtn.textContent = '…';
+      try{
+        const res = await fetch(`/api/complaints/${c.reference}`, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ status: select.value })
+        });
+        if(!res.ok) throw new Error('Update failed.');
+        showToast(`${c.reference} marked ${select.value}.`);
+        closeComplaintModal();
+        loadComplaints();
+      } catch(err){
+        showToast(err.message, 'error');
+        updateBtn.disabled = false; updateBtn.textContent = 'Update status';
+      }
+    };
+
+    cmodalOverlay.classList.add('show');
+    requestAnimationFrame(() => cmodalOverlay.classList.add('visible'));
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeComplaintModal(){
+    cmodalOverlay.classList.remove('visible');
+    document.body.style.overflow = '';
+    setTimeout(() => cmodalOverlay.classList.remove('show'), 250);
+  }
+  document.getElementById('cmodalClose').addEventListener('click', closeComplaintModal);
+  cmodalOverlay.addEventListener('click', (e) => { if(e.target === cmodalOverlay) closeComplaintModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && cmodalOverlay.classList.contains('show')) closeComplaintModal(); });
+
+  // ===================== SUGGESTIONS: marked vs unmarked =====================
+
+  function suggCardHtml(t){
+    return `
+      <div class="sugg-card" data-id="${t.id}">
+        <div class="sugg-top">
+          <h4>${escapeHtml(t.title)}${t.archived ? '<span class="archived-tag">Archived</span>' : ''}</h4>
+          <span class="sugg-votes">▲ ${t.votes}</span>
+        </div>
+        ${t.implementing ? '<span class="sugg-implementing-tag">✓ Being implemented</span><br>' : ''}
+        <button class="sugg-implement-btn ${t.implementing ? 'unmark' : 'mark'}" data-id="${t.id}" data-implementing="${!t.implementing}">
+          ${t.implementing ? 'Unmark' : '✓ Mark as being implemented'}
+        </button>
+      </div>`;
+  }
+
+  async function loadSuggestions(){
+    const markedWrap = document.getElementById('suggestionsMarkedWrap');
+    const unmarkedWrap = document.getElementById('suggestionsUnmarkedWrap');
+    const res = await fetch('/api/forum/threads/approved');
+    if(!res.ok){
+      markedWrap.innerHTML = '<p class="empty-note">Could not load suggestions.</p>';
+      unmarkedWrap.innerHTML = '<p class="empty-note">Could not load suggestions.</p>';
+      return;
+    }
+    const all = await res.json();
+    const suggestions = all.filter(t => t.category === 'suggestion');
+    const marked = suggestions.filter(t => t.implementing);
+    const unmarked = suggestions.filter(t => !t.implementing);
+
+    markedWrap.innerHTML = marked.length ? marked.map(suggCardHtml).join('') : '<p class="empty-note">Nothing marked yet.</p>';
+    unmarkedWrap.innerHTML = unmarked.length ? unmarked.map(suggCardHtml).join('') : '<p class="empty-note">No unmarked suggestions.</p>';
+
+    document.querySelectorAll('#suggestionsMarkedWrap .sugg-implement-btn, #suggestionsUnmarkedWrap .sugg-implement-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const implementing = btn.dataset.implementing === 'true';
+        let note = null;
+        if(implementing){
+          note = prompt('Optional note for residents (e.g. "Included in next quarter\'s budget"). Leave blank to skip.') || null;
+        }
+        btn.disabled = true;
+        try{
+          const res = await fetch(`/api/forum/threads/${id}/implement`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ implementing, note })
+          });
+          if(!res.ok) throw new Error('Update failed.');
+          showToast(implementing ? 'Marked as being implemented.' : 'Unmarked.');
+          loadSuggestions();
+        } catch(err){
+          showToast(err.message);
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // ===================== ANNOUNCEMENTS =====================
+
+  const annUploadZone = document.getElementById('annUploadZone');
+  const annPhotoInput = document.getElementById('annPhotoInput');
+  const annUploadLabel = document.getElementById('annUploadLabel');
+  const annPhotoPreview = document.getElementById('annPhotoPreview');
+  const annPhotoRemoveBtn = document.getElementById('annPhotoRemove');
+  let annPhotoDataUrl = null;
+
+  function resetAnnPhoto(){
+    annPhotoDataUrl = null;
+    annPhotoInput.value = '';
+    annPhotoPreview.src = '';
+    annUploadLabel.textContent = 'Click to attach, or drag a file here';
+    annUploadZone.classList.remove('has-photo');
+  }
+
+  function handleAnnPhotoFile(file){
+    if(!file) return;
+    if(!file.type.startsWith('image/')){ showToast('Please attach an image file.', 'error'); return; }
+    if(file.size > 12 * 1024 * 1024){ showToast('That image is too large — please pick one under 12MB.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 1280;
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        annPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        annPhotoPreview.src = annPhotoDataUrl;
+        annUploadLabel.textContent = `✓ ${file.name} attached`;
+        annUploadZone.classList.add('has-photo');
+      };
+      img.onerror = () => showToast('Could not read that image — try a different file.', 'error');
+      img.src = reader.result;
+    };
+    reader.onerror = () => showToast('Could not read that image — try a different file.', 'error');
+    reader.readAsDataURL(file);
+  }
+
+  annUploadZone.addEventListener('click', (e) => { if(e.target === annPhotoRemoveBtn) return; annPhotoInput.click(); });
+  annUploadZone.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); annPhotoInput.click(); } });
+  annPhotoInput.addEventListener('change', () => handleAnnPhotoFile(annPhotoInput.files[0]));
+  annUploadZone.addEventListener('dragover', (e) => { e.preventDefault(); annUploadZone.classList.add('dragover'); });
+  annUploadZone.addEventListener('dragleave', () => annUploadZone.classList.remove('dragover'));
+  annUploadZone.addEventListener('drop', (e) => { e.preventDefault(); annUploadZone.classList.remove('dragover'); handleAnnPhotoFile(e.dataTransfer.files[0]); });
+  annPhotoRemoveBtn.addEventListener('click', (e) => { e.stopPropagation(); resetAnnPhoto(); });
+
+  document.getElementById('annSubmit').addEventListener('click', async () => {
+    const category = document.getElementById('annCategory').value;
+    const title = document.getElementById('annTitle').value.trim();
+    const body = document.getElementById('annBody').value.trim();
+    if(!title || !body){ showToast('Add a title and details first.'); return; }
+
+    const btn = document.getElementById('annSubmit');
+    btn.disabled = true; btn.textContent = 'Posting…';
+    try{
+      const res = await fetch('/api/announcements', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ category, title, body, image: annPhotoDataUrl })
+      });
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Could not post announcement.');
+      }
+      document.getElementById('annTitle').value = '';
+      document.getElementById('annBody').value = '';
+      resetAnnPhoto();
+      showToast('Announcement posted.');
+      loadAnnouncements();
+    } catch(err){
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Post announcement';
+    }
+  });
+
+  // list of already-posted announcements — click to view full text/image,
+  // delete to remove for good
+  let announcementsCache = [];
+
+  async function loadAnnouncements(){
+    const wrap = document.getElementById('announcementsWrap');
+    const res = await fetch('/api/announcements');
+    if(!res.ok){ wrap.innerHTML = '<p class="empty-note">Could not load announcements.</p>'; return; }
+    const items = await res.json();
+    announcementsCache = items;
+
+    if(!items.length){
+      wrap.innerHTML = '<p class="empty-note">No announcements posted yet.</p>';
+      return;
+    }
+
+    wrap.innerHTML = items.map(a => `
+      <div class="ann-list-card" data-id="${a.id}" role="button" tabindex="0" aria-label="View full announcement: ${escapeHtml(a.title)}">
+        ${a.image ? `<img class="ann-list-thumb" src="${a.image}" alt="">` : '<div class="ann-list-thumb"></div>'}
+        <div class="ann-list-body">
+          <h4>${escapeHtml(a.title)}</h4>
+          <div class="ann-list-meta">${escapeHtml(a.category)} · ${new Date(a.createdAt).toLocaleString()}</div>
+          <div class="ann-list-snippet">${escapeHtml(a.body)}</div>
+        </div>
+      </div>`).join('');
+
+    wrap.querySelectorAll('.ann-list-card').forEach(card => {
+      card.addEventListener('click', () => openAnnouncementModal(Number(card.dataset.id)));
+      card.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openAnnouncementModal(Number(card.dataset.id)); } });
+    });
+  }
+
+  const anmodalOverlay = document.getElementById('anmodalOverlay');
+
+  function openAnnouncementModal(id){
+    const a = announcementsCache.find(x => x.id === id);
+    if(!a) return;
+    document.getElementById('anmodalTag').textContent = a.category;
+    document.getElementById('anmodalTitle').textContent = a.title;
+    document.getElementById('anmodalMeta').textContent = new Date(a.createdAt).toLocaleString();
+    document.getElementById('anmodalBody').textContent = a.body;
+    const imgEl = document.getElementById('anmodalImg');
+    if(a.image){ imgEl.src = a.image; imgEl.style.display = 'block'; }
+    else { imgEl.src = ''; imgEl.style.display = 'none'; }
+
+    const deleteBtn = document.getElementById('anmodalDeleteBtn');
+    deleteBtn.disabled = false; deleteBtn.textContent = '🗑 Delete this announcement';
+    deleteBtn.onclick = async () => {
+      if(!confirm('Permanently delete this announcement? This cannot be undone.')) return;
+      deleteBtn.disabled = true; deleteBtn.textContent = 'Deleting…';
+      try{
+        const res = await fetch(`/api/announcements/${a.id}`, { method: 'DELETE' });
+        if(!res.ok) throw new Error('Could not delete this announcement.');
+        showToast('Announcement deleted.');
+        closeAnnouncementModal();
+        loadAnnouncements();
+      } catch(err){
+        showToast(err.message);
+        deleteBtn.disabled = false; deleteBtn.textContent = '🗑 Delete this announcement';
+      }
+    };
+
+    anmodalOverlay.classList.add('show');
+    requestAnimationFrame(() => anmodalOverlay.classList.add('visible'));
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeAnnouncementModal(){
+    anmodalOverlay.classList.remove('visible');
+    document.body.style.overflow = '';
+    setTimeout(() => anmodalOverlay.classList.remove('show'), 250);
+  }
+  document.getElementById('anmodalClose').addEventListener('click', closeAnnouncementModal);
+  anmodalOverlay.addEventListener('click', (e) => { if(e.target === anmodalOverlay) closeAnnouncementModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && anmodalOverlay.classList.contains('show')) closeAnnouncementModal(); });
+
+  // ===================== SURVEY COMPOSER =====================
+
+  let survOptSeq = 0;
+  function addSurvOptionRow(placeholder){
+    const wrap = document.getElementById('survOptions');
+    const rowId = 'surv-opt-' + (survOptSeq++);
+    const row = document.createElement('div');
+    row.className = 'surv-opt-row';
+    row.dataset.rowId = rowId;
+    row.innerHTML = `
+      <input type="text" class="surv-opt" placeholder="${placeholder || 'Option label'}">
+      <button type="button" class="surv-opt-remove" aria-label="Remove this option">✕</button>`;
+    wrap.appendChild(row);
+    row.querySelector('.surv-opt-remove').addEventListener('click', () => {
+      // Keep at least 2 option rows — a survey needs at least two choices.
+      const rows = wrap.querySelectorAll('.surv-opt-row');
+      if(rows.length <= 2){
+        showToast('A survey needs at least two options.', 'error');
+        return;
+      }
+      row.remove();
+      updateSurvRemoveButtons();
+    });
+    updateSurvRemoveButtons();
+  }
+
+  function updateSurvRemoveButtons(){
+    const rows = document.querySelectorAll('#survOptions .surv-opt-row');
+    rows.forEach(r => { r.querySelector('.surv-opt-remove').disabled = rows.length <= 2; });
+  }
+
+  function resetSurvOptions(){
+    document.getElementById('survOptions').innerHTML = '';
+    survOptSeq = 0;
+    addSurvOptionRow('Option label — e.g. Health Center');
+    addSurvOptionRow('Option label — e.g. Waste Collection');
+    addSurvOptionRow('Option label — e.g. Road Maintenance');
+  }
+  resetSurvOptions();
+
+  document.getElementById('survAddOption').addEventListener('click', () => addSurvOptionRow());
+
+  document.getElementById('survSubmit').addEventListener('click', async () => {
+    const title = document.getElementById('survTitle').value.trim();
+    const body = document.getElementById('survBody').value.trim();
+    const days = document.getElementById('survClosesDays').value.trim();
+    const hours = document.getElementById('survClosesHours').value.trim();
+    const minutes = document.getElementById('survClosesMinutes').value.trim();
+    const options = Array.from(document.querySelectorAll('.surv-opt'))
+      .map(el => el.value.trim())
+      .filter(Boolean)
+      .map(label => ({ label }));
+
+    if(!title || !body){ showToast('Add a title and description first.'); return; }
+    if(options.length < 2){ showToast('Add at least two survey options.'); return; }
+    const totalMinutes = (Number(days) || 0) * 1440 + (Number(hours) || 0) * 60 + (Number(minutes) || 0);
+    if(totalMinutes < 1){ showToast('Set how long the survey stays open — at least 1 minute.'); return; }
+
+    const btn = document.getElementById('survSubmit');
+    btn.disabled = true; btn.textContent = 'Posting…';
+    try{
+      const res = await fetch('/api/forum/threads/survey', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ title, body, days, hours, minutes, options })
+      });
+      if(!res.ok){
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Could not post survey.');
+      }
+      document.getElementById('survTitle').value = '';
+      document.getElementById('survBody').value = '';
+      document.getElementById('survClosesDays').value = '7';
+      document.getElementById('survClosesHours').value = '0';
+      document.getElementById('survClosesMinutes').value = '0';
+      resetSurvOptions();
+      showToast('Survey posted — now live on the forum.');
+    } catch(err){
+      showToast(err.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Post survey';
+    }
+  });
+
+  async function loadClosedSurveys(){
+    const wrap = document.getElementById('closedSurveysWrap');
+    const res = await fetch('/api/forum/threads/surveys/closed');
+    if(!res.ok){ wrap.innerHTML = '<p class="empty-note">Could not load closed surveys.</p>'; return; }
+    const closed = await res.json();
+
+    if(!closed.length){
+      wrap.innerHTML = '<p class="empty-note">No surveys have closed yet.</p>';
+      return;
+    }
+
+    wrap.innerHTML = closed.map(s => `
+      <div class="closed-surv-card">
+        <h4>${escapeHtml(s.title)}</h4>
+        <div class="closed-surv-meta">Ran ${s.durationLabel} · posted ${new Date(s.createdAt).toLocaleDateString()}</div>
+        ${s.options.map(o => `
+          <div class="closed-opt-row">
+            <span class="lbl">${escapeHtml(o.label)}</span>
+            <div class="closed-opt-track"><div class="closed-opt-fill" style="width:${o.pct}%;"></div></div>
+            <span class="closed-opt-pct">${o.pct}%</span>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+
+  checkSession();
+</script>
+
+</body>
+</html>

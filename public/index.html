@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>E-Barangay Portal — One Portal, Every Barangay Need</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .mock-row[data-ann-id]{cursor:pointer;}
+  .mock-row .ann-thumb{width:36px; height:36px; border-radius:8px; object-fit:cover; margin-right:2px; flex-shrink:0;}
+
+  .amodal-overlay{
+    position:fixed; inset:0; background:rgba(18,35,59,0.55); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:1000; padding:20px;
+    opacity:0; transition:opacity 0.25s ease;
+  }
+  .amodal-overlay.show{display:flex;}
+  .amodal-overlay.visible{opacity:1;}
+  .amodal-box{
+    background:#fff; border-radius:22px; max-width:560px; width:100%; max-height:86vh; overflow-y:auto;
+    padding:36px; position:relative; transform:translateY(20px) scale(0.97); opacity:0;
+    transition:transform 0.35s cubic-bezier(.2,.9,.25,1.1), opacity 0.35s ease;
+    box-shadow:0 30px 70px -20px rgba(18,35,59,0.5);
+  }
+  .amodal-overlay.visible .amodal-box{transform:translateY(0) scale(1); opacity:1;}
+  .amodal-close{
+    position:absolute; top:18px; right:18px; background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:1.2rem; line-height:1; padding:4px;
+  }
+  .amodal-close:hover{color:var(--ink);}
+  .amodal-tag{
+    display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase;
+    letter-spacing:0.06em; padding:4px 10px; border-radius:999px; background:var(--indigo-soft); color:var(--indigo); margin-bottom:10px;
+  }
+  .amodal-box h3{font-size:1.3rem; color:var(--indigo-deep); font-family:'Fraunces',serif; margin:2px 0 8px; padding-right:26px;}
+  .amodal-meta{font-size:0.78rem; color:var(--ink-soft); margin-bottom:18px;}
+  .amodal-img{max-width:100%; max-height:340px; border-radius:14px; box-shadow:var(--shadow-soft); display:block; margin-bottom:18px;}
+  .amodal-box p.amodal-body{font-size:0.95rem; color:var(--ink); line-height:1.7; white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <nav>
+    <a href="#" class="brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="19" stroke="#1d3557" stroke-width="1.4"/>
+        <path d="M20 8 L20 32 M8 20 L32 20" stroke="#e2a53c" stroke-width="1.4"/>
+        <circle cx="20" cy="20" r="6" fill="#1d3557"/>
+      </svg>
+      <span class="brand-text">Barangay Portal<span>Digital Community Hub</span></span>
+    </a>
+    <ul class="navlinks">
+      <li><a href="#modules">Modules</a></li>
+      <li><a href="forum.html">Forum</a></li>
+      <li><a href="complaint.html">Complaints</a></li>
+      <li><a href="#emergency">Emergency</a></li>
+      <li><a href="#faq">FAQs</a></li>
+    </ul>
+    <button class="nav-cta" onclick="window.location.href='complaint.html'">File a Complaint</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><line class="l1" x1="4" y1="7" x2="20" y2="7"/><line class="l2" x1="4" y1="12" x2="20" y2="12"/><line class="l3" x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </nav>
+</header>
+<script>
+  (function(){
+    var toggle = document.getElementById('navToggle');
+    var links = document.querySelector('.navlinks');
+    if(!toggle || !links) return;
+    toggle.addEventListener('click', function(){
+      var open = links.classList.toggle('open');
+      toggle.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    links.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        links.classList.remove('open'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded','false');
+      });
+    });
+  })();
+</script>
+
+<section class="hero">
+  <svg class="sunburst" viewBox="0 0 900 900" id="sunburstSvg"></svg>
+  <div class="hero-inner">
+    <div class="eyebrow">Barangay Digital Services</div>
+    <h1>One portal, <em>every</em> barangay need.</h1>
+    <p class="lede">Announcements, complaints, community forums, emergency contacts, and FAQs — brought together into one place your residents will actually use.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="#modules">Explore the modules</a>
+      <a class="btn-ghost" href="#tracker">See a complaint tracked</a>
+    </div>
+
+    <div class="hero-glyph">
+      <svg viewBox="0 0 220 200">
+        <circle class="glyph-pulse" cx="110" cy="150" r="70" fill="none" stroke="#e2a53c"/>
+        <circle class="glyph-pulse" cx="110" cy="150" r="70" fill="none" stroke="#e2a53c" style="animation-delay:1s"/>
+        <!-- hall -->
+        <rect x="55" y="90" width="110" height="65" fill="#1d3557"/>
+        <polygon points="45,90 110,55 175,90" fill="#12233b"/>
+        <rect x="60" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="78" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="96" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="116" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="134" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="152" y="150" width="8" height="16" fill="#e2a53c"/>
+        <rect x="100" y="100" width="20" height="30" fill="#e2a53c"/>
+        <line x1="30" y1="155" x2="190" y2="155" stroke="#5a5347" stroke-width="1.5"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="band-track" id="bandTrack"></div>
+</div>
+
+<section id="modules">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Explore</div>
+      <h2>Five modules, one interface.</h2>
+      <p>Click a tab to see how each module works for a resident.</p>
+    </div>
+
+    <div class="showcase reveal">
+      <div class="tab-rail" id="tabRail">
+        <button class="tab-btn active" data-tab="announce">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10v4a1 1 0 001 1h2l4 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8a5 5 0 010 8"/></svg>
+          <span><span class="t-label">Announcements</span><span class="t-sub">weather · alerts · jobs</span></span>
+        </button>
+        <button class="tab-btn" data-tab="forum">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 10-3.5 6.6L20 20l-1.2-3.6A7.96 7.96 0 0020 12z"/></svg>
+          <span><span class="t-label">Community Forum</span><span class="t-sub">feedback · surveys</span></span>
+        </button>
+        <button class="tab-btn" data-tab="complaint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01M4.5 19h15a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0l-7.5 13A1 1 0 004.5 19z"/></svg>
+          <span><span class="t-label">Complaint Center</span><span class="t-sub">file · track · resolve</span></span>
+        </button>
+        <button class="tab-btn" data-tab="emergency">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z"/></svg>
+          <span><span class="t-label">Emergency Contacts</span><span class="t-sub">officials · police · fire</span></span>
+        </button>
+        <button class="tab-btn" data-tab="faq">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2 1.7-2.3 3.2M12 17h.01"/></svg>
+          <span><span class="t-label">FAQs</span><span class="t-sub">common questions</span></span>
+        </button>
+      </div>
+
+      <div class="panel">
+
+        <div class="panel-view active" data-view="announce">
+          <div class="panel-head"><h3>Barangay Announcements</h3><span class="panel-tag" id="announceTag">Loading…</span></div>
+          <p class="panel-desc">Everything residents used to find scattered across Facebook groups and tarpaulins, now in one feed.</p>
+          <div class="mock-list" id="announceList">
+            <div class="mock-row"><span class="mock-dot dot-alert"></span><div class="txt"><b>Flood advisory — Purok 3 to 5</b><small>Emergency Alert</small></div><span class="mock-time">2h ago</span></div>
+            <div class="mock-row"><span class="mock-dot dot-gold"></span><div class="txt"><b>Cloudy, 60% rain chance tomorrow</b><small>Weather Forecast</small></div><span class="mock-time">4h ago</span></div>
+            <div class="mock-row"><span class="mock-dot dot-sage"></span><div class="txt"><b>Barangay Health Worker — 2 slots open</b><small>Job Opening</small></div><span class="mock-time">1d ago</span></div>
+            <div class="mock-row"><span class="mock-dot dot-indigo"></span><div class="txt"><b>Water interruption, July 28, 9am–3pm</b><small>Public Advisory</small></div><span class="mock-time">1d ago</span></div>
+            <div class="mock-row"><span class="mock-dot dot-gold"></span><div class="txt"><b>Basketball league finals this weekend</b><small>Upcoming Event</small></div><span class="mock-time">2d ago</span></div>
+          </div>
+        </div>
+
+        <div class="panel-view" data-view="forum">
+          <div class="panel-head"><h3>Community Forum</h3><span class="panel-tag" id="forumTag">Loading…</span></div>
+          <p class="panel-desc">Residents react to real barangay projects instead of guessing whether feedback ever reaches anyone.</p>
+          <div class="mock-list" id="forumPreviewList">
+            <div class="mock-row"><span class="mock-dot dot-sage"></span><div class="txt"><b>Loading recent threads…</b></div></div>
+          </div>
+          <a class="btn-primary" href="forum.html" style="margin-top:24px;">Open the full forum →</a>
+        </div>
+
+        <div class="panel-view" data-view="complaint">
+          <div class="panel-head"><h3>Complaint & Concern Center</h3><span class="panel-tag">anonymous option</span></div>
+          <p class="panel-desc">File a complaint, report an issue anonymously, and follow its status without a follow-up call to the barangay hall.</p>
+          <div class="complaint-form-demo">
+            <div class="fake-input">Category — Noise Complaint</div>
+            <div class="fake-input">Location — Purok 2</div>
+            <div class="fake-input full">Description — Loud videoke past 11pm, recurring for a week…</div>
+            <div class="anon-toggle">
+              <div class="toggle on" id="anonToggle"><i></i></div>
+              Submit anonymously
+            </div>
+          </div>
+          <a class="btn-primary" href="complaint.html" style="margin-top:24px;">Open the full complaint form →</a>
+        </div>
+
+        <div class="panel-view" data-view="emergency">
+          <div class="panel-head"><h3>Emergency Contacts</h3><span class="panel-tag">one tap away</span></div>
+          <p class="panel-desc">No more digging through old group chats when it actually matters.</p>
+          <div class="emergency-grid">
+            <div class="em-card"><div class="em-num">📞 Barangay Hall</div><div class="em-label">(02) 8-372-1122</div></div>
+            <div class="em-card"><div class="em-num">🚓 Police Station</div><div class="em-label">117 / (02) 8-372-3341</div></div>
+            <div class="em-card"><div class="em-num">🚒 Fire Station</div><div class="em-label">(02) 8-372-7788</div></div>
+            <div class="em-card"><div class="em-num">🏥 Health Center</div><div class="em-label">(02) 8-372-4090</div></div>
+          </div>
+        </div>
+
+        <div class="panel-view" data-view="faq">
+          <div class="panel-head"><h3>Frequently Asked Questions</h3><span class="panel-tag">self-service</span></div>
+          <p class="panel-desc">Answers residents can find themselves, before they need to line up.</p>
+          <div class="acc-list" id="accList">
+            <div class="acc-item open">
+              <div class="acc-q" role="button" tabindex="0">How do I share feedback or a suggestion with the barangay? <span class="plus">+</span></div>
+              <div class="acc-a">Head to the Community Forum, choose Feedback or Suggestion, and post — it goes live once a barangay staff member approves it.</div>
+            </div>
+            <div class="acc-item">
+              <div class="acc-q" role="button" tabindex="0">Can I file a complaint anonymously? <span class="plus">+</span></div>
+              <div class="acc-a">Yes — toggle "submit anonymously" in the Complaint Center before sending your report.</div>
+            </div>
+            <div class="acc-item">
+              <div class="acc-q" role="button" tabindex="0">How do I track my complaint's status? <span class="plus">+</span></div>
+              <div class="acc-a">Every complaint gets a reference number you can check anytime under Complaint Center → Track Status.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tracker" style="background:var(--paper-deep);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Complaint Center</div>
+      <h2>A complaint, followed end to end.</h2>
+      <p>The part residents actually want: knowing it didn't disappear into a drawer.</p>
+    </div>
+    <div class="showcase reveal" style="grid-template-columns:1fr; padding:40px 44px;">
+      <div class="stepper">
+        <div class="step">
+          <div class="bar"><i></i></div>
+          <b>Filed</b>
+          <small>You get a reference number instantly</small>
+        </div>
+        <div class="step">
+          <div class="bar"><i></i></div>
+          <b>Under Review</b>
+          <small>Assigned to a barangay official</small>
+        </div>
+        <div class="step">
+          <div class="bar"><i></i></div>
+          <b>Resolved</b>
+          <small>Tracked by reference number — no follow-up call needed</small>
+        </div>
+      </div>
+      <p style="margin-top:24px; font-size:0.9rem; color:var(--ink-soft);">Example flow shown — <a href="complaint.html" style="color:var(--indigo); font-weight:600;">check a real complaint's status</a> with your own reference number.</p>
+    </div>
+  </div>
+</section>
+
+<section id="emergency" class="es-section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Emergency Contacts</div>
+      <h2>When it can't wait, call directly.</h2>
+      <p>No digging through old group chats. These numbers are one tap away, day or night.</p>
+    </div>
+
+    <div class="es-banner reveal">
+      <span class="dot"></span>
+      <p><b>In immediate danger?</b> Call 911 first, then notify the barangay hall so local officials can assist on the ground.</p>
+    </div>
+
+    <div class="es-grid reveal">
+      <a class="es-card" href="tel:+6321234">
+        <div class="es-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10v4a1 1 0 001 1h2l4 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8a5 5 0 010 8"/></svg></div>
+        <b>Barangay Hall</b>
+        <span class="es-num">(02) 8-372-1122</span>
+        <span class="es-call">Tap to call <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="es-card" href="tel:117">
+        <div class="es-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z"/></svg></div>
+        <b>Police Station</b>
+        <span class="es-num">117 · (02) 8-372-3341</span>
+        <span class="es-call">Tap to call <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="es-card" href="tel:+6387781122">
+        <div class="es-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c-3 4-6 7-6 11a6 6 0 0012 0c0-4-3-7-6-11z"/></svg></div>
+        <b>Fire Station</b>
+        <span class="es-num">(02) 8-372-7788</span>
+        <span class="es-call">Tap to call <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+      <a class="es-card" href="tel:+6384091122">
+        <div class="es-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/><path d="M9 12h6M12 9v6"/></svg></div>
+        <b>Health Center</b>
+        <span class="es-num">(02) 8-372-4090</span>
+        <span class="es-call">Tap to call <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">At a glance</div>
+      <h2>Built around what a barangay does every day.</h2>
+    </div>
+    <div class="pillars reveal">
+      <div class="pillar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10v4a1 1 0 001 1h2l4 4V5L7 9H5a1 1 0 00-1 1z"/></svg><b>Announcements</b></div>
+      <div class="pillar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 10-3.5 6.6L20 20l-1.2-3.6A7.96 7.96 0 0020 12z"/></svg><b>Forum</b></div>
+      <div class="pillar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 9v4M12 17h.01"/><path d="M4.5 19h15a1 1 0 00.87-1.5l-7.5-13a1 1 0 00-1.74 0l-7.5 13A1 1 0 004.5 19z"/></svg><b>Complaints</b></div>
+      <div class="pillar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z"/></svg><b>Emergency</b></div>
+      <div class="pillar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.5-2 1.7-2.3 3.2M12 17h.01"/></svg><b>FAQs</b></div>
+    </div>
+  </div>
+</section>
+
+<footer id="faq">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="brand-text">Barangay Portal</span>
+        <p>A centralized digital system for the barangay's day-to-day community needs — announcements, complaints, and community feedback, all in one place.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <b>Modules</b>
+          <a href="#modules">Announcements</a>
+          <a href="#modules">Community Forum</a>
+          <a href="#tracker">Complaints</a>
+        </div>
+        <div class="footer-col">
+          <b>Support</b>
+          <a href="#emergency">Emergency Contacts</a>
+          <a href="#modules">FAQs</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="footerYear"></span> Barangay Portal</span>
+      <span><a href="admin.html" style="color:rgba(223,230,237,0.5); text-decoration:none;">Staff Login →</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="amodal-overlay" id="amodalOverlay">
+  <div class="amodal-box">
+    <button class="amodal-close" id="amodalClose" aria-label="Close">✕</button>
+    <span class="amodal-tag" id="amodalTag"></span>
+    <h3 id="amodalTitle"></h3>
+    <p class="amodal-meta" id="amodalMeta"></p>
+    <img class="amodal-img" id="amodalImg" alt="Announcement image" style="display:none;">
+    <p class="amodal-body" id="amodalBody"></p>
+  </div>
+</div>
+
+<script>
+  // sunburst rays generation
+  (function(){
+    const svg = document.getElementById('sunburstSvg');
+    const cx = 450, cy = 450, rInner = 90, rOuter = 430;
+    const count = 48;
+    let html = '';
+    for(let i=0;i<count;i++){
+      const angle = (i / count) * Math.PI * 2;
+      const x1 = cx + Math.cos(angle) * rInner;
+      const y1 = cy + Math.sin(angle) * rInner;
+      const x2 = cx + Math.cos(angle) * rOuter;
+      const y2 = cy + Math.sin(angle) * rOuter;
+      html += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"></line>`;
+    }
+    svg.innerHTML = html;
+  })();
+
+  // marquee content
+  (function(){
+    const items = ['Announcements','Community Forum','Complaint Center','Emergency Contacts','FAQs','Anonymous Reporting','Real-time Status Tracking'];
+    const track = document.getElementById('bandTrack');
+    const full = [...items, ...items];
+    track.innerHTML = full.map(t => `<span>${t}</span>`).join('');
+  })();
+
+  // tab switching
+  const tabs = document.querySelectorAll('.tab-btn');
+  const views = document.querySelectorAll('.panel-view');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      views.forEach(v => v.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.panel-view[data-view="${tab.dataset.tab}"]`).classList.add('active');
+    });
+  });
+
+  // anon toggle
+  document.getElementById('anonToggle').addEventListener('click', function(){
+    this.classList.toggle('on');
+  });
+
+  // faq accordion — populated from backend, then wired
+  function wireAccordion(){
+    document.querySelectorAll('.acc-q').forEach(q => {
+      q.addEventListener('click', () => {
+        const item = q.closest('.acc-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.acc-item').forEach(i => i.classList.remove('open'));
+        if(!wasOpen) item.classList.add('open');
+      });
+      q.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); q.click(); }
+      });
+    });
+  }
+  wireAccordion();
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:0.15});
+  revealEls.forEach(el => io.observe(el));
+
+  // --- live data from the backend (falls back to the mock content above if the server isn't running) ---
+
+  function timeAgo(iso){
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const hrs = Math.floor(diffMs / 3600000);
+    if(hrs < 1) return 'just now';
+    if(hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    return days + 'd ago';
+  }
+  const DOT_CLASS = { 'Emergency Alert':'dot-alert', 'Weather Forecast':'dot-gold', 'Job Opening':'dot-sage', 'Public Advisory':'dot-indigo', 'Upcoming Event':'dot-gold', 'Latest News and Updates':'dot-indigo' };
+
+  fetch('/api/announcements').then(r => r.json()).then(items => {
+    announcementsCache = items;
+    const list = document.getElementById('announceList');
+    list.innerHTML = items.slice(0, 6).map(a =>
+      `<div class="mock-row" data-ann-id="${a.id}" role="button" tabindex="0" aria-label="Read full announcement: ${a.title.replace(/"/g,'&quot;')}">
+        ${a.image ? `<img class="ann-thumb" src="${a.image}" alt="">` : `<span class="mock-dot ${DOT_CLASS[a.category] || 'dot-indigo'}"></span>`}
+        <div class="txt"><b>${a.title}</b><small>${a.category}</small></div><span class="mock-time">${timeAgo(a.createdAt)}</span>
+      </div>`
+    ).join('');
+    document.querySelectorAll('#announceList .mock-row[data-ann-id]').forEach(row => {
+      row.addEventListener('click', () => openAnnouncementModal(Number(row.dataset.annId)));
+      row.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openAnnouncementModal(Number(row.dataset.annId)); } });
+    });
+    const categories = new Set(items.map(a => a.category)).size;
+    document.getElementById('announceTag').textContent = `${categories} categor${categories === 1 ? 'y' : 'ies'}`;
+  }).catch(() => { document.getElementById('announceTag').textContent = 'Unavailable'; });
+
+  fetch('/api/forum/threads?sort=top').then(r => r.json()).then(threads => {
+    document.getElementById('forumTag').textContent = `${threads.length} active thread${threads.length === 1 ? '' : 's'}`;
+    const preview = document.getElementById('forumPreviewList');
+    if (!threads.length) {
+      preview.innerHTML = `<div class="mock-row"><div class="txt"><b>No threads yet — be the first to post.</b></div></div>`;
+      return;
+    }
+    preview.innerHTML = threads.slice(0, 3).map(t => {
+      const label = t.category === 'survey' ? `Survey · closes in ${t.survey ? t.survey.closesInDays : '?'} days`
+        : t.category === 'suggestion' ? `Suggestion Box · ${t.votes} upvote${t.votes === 1 ? '' : 's'}`
+        : `Project Feedback · ${t.comments ? t.comments.length : 0} response${(t.comments ? t.comments.length : 0) === 1 ? '' : 's'}`;
+      const dot = t.category === 'survey' ? 'dot-indigo' : t.category === 'suggestion' ? 'dot-gold' : 'dot-sage';
+      return `<div class="mock-row"><span class="mock-dot ${dot}"></span><div class="txt"><b>${t.title}</b><small>${label}</small></div></div>`;
+    }).join('');
+  }).catch(() => {
+    document.getElementById('forumTag').textContent = 'Unavailable';
+    document.getElementById('forumPreviewList').innerHTML = `<div class="mock-row"><div class="txt"><b>Couldn't load forum activity.</b></div></div>`;
+  });
+
+  fetch('/api/emergency-contacts').then(r => r.json()).then(contacts => {
+    const grid = document.querySelector('.es-grid');
+    const ICONS = {
+      hall: '<path d="M4 10v4a1 1 0 001 1h2l4 4V5L7 9H5a1 1 0 00-1 1z"/><path d="M16 8a5 5 0 010 8"/>',
+      police: '<path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6l8-4z"/>',
+      fire: '<path d="M12 2c-3 4-6 7-6 11a6 6 0 0012 0c0-4-3-7-6-11z"/>',
+      health: '<path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/><path d="M9 12h6M12 9v6"/>'
+    };
+    grid.innerHTML = contacts.map(c => `
+      <a class="es-card" href="tel:${c.tel}">
+        <div class="es-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[c.icon] || ICONS.hall}</svg></div>
+        <b>${c.name}</b>
+        <span class="es-num">${c.number}</span>
+        <span class="es-call">Tap to call <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>`).join('');
+  }).catch(() => {});
+
+  const footerYearEl = document.getElementById('footerYear');
+  if (footerYearEl) footerYearEl.textContent = new Date().getFullYear();
+
+  // announcement detail modal — clicking any announcement row opens the
+  // full text (and image, if the staff attached one) instead of the resident
+  // having to guess from the truncated preview row.
+  let announcementsCache = [];
+  const amodalOverlay = document.getElementById('amodalOverlay');
+
+  function openAnnouncementModal(id){
+    const a = announcementsCache.find(x => x.id === id);
+    if(!a) return;
+    document.getElementById('amodalTag').textContent = a.category;
+    document.getElementById('amodalTitle').textContent = a.title;
+    document.getElementById('amodalMeta').textContent = new Date(a.createdAt).toLocaleString();
+    document.getElementById('amodalBody').textContent = a.body;
+    const imgEl = document.getElementById('amodalImg');
+    if(a.image){ imgEl.src = a.image; imgEl.style.display = 'block'; }
+    else { imgEl.src = ''; imgEl.style.display = 'none'; }
+
+    amodalOverlay.classList.add('show');
+    requestAnimationFrame(() => amodalOverlay.classList.add('visible'));
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAnnouncementModal(){
+    amodalOverlay.classList.remove('visible');
+    document.body.style.overflow = '';
+    setTimeout(() => amodalOverlay.classList.remove('show'), 250);
+  }
+  document.getElementById('amodalClose').addEventListener('click', closeAnnouncementModal);
+  amodalOverlay.addEventListener('click', (e) => { if(e.target === amodalOverlay) closeAnnouncementModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && amodalOverlay.classList.contains('show')) closeAnnouncementModal(); });
+
+  fetch('/api/faqs').then(r => r.json()).then(faqs => {
+    const list = document.getElementById('accList');
+    list.innerHTML = faqs.map((f, i) =>
+      `<div class="acc-item ${i === 0 ? 'open' : ''}">
+        <div class="acc-q" role="button" tabindex="0">${f.question} <span class="plus">+</span></div>
+        <div class="acc-a">${f.answer}</div>
+      </div>`
+    ).join('');
+    wireAccordion();
+  }).catch(() => {});
+</script>
+
+</body>
+</html>
